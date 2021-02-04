@@ -45,6 +45,3 @@ def write_in_usr_db(email, psw):
             return jsonify({'duplicate_error': 'User already exists'}), 400
     else:
         return user_get
-
-
-

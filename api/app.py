@@ -1,13 +1,16 @@
-from flask import Flask
+from flask import Flask, request
+from func.registration import write_in_usr_db
 
 
 app = Flask(__name__)
 
 
-@app.route('/api/v1/users/')
+@app.route('/api/v1/users/', methods=['POST', 'GET'])
 def ok():
-    return 'OK', 200
+    auth_request = request.get_json()
+
+    return write_in_usr_db(auth_request['email'], auth_request['password'])
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
