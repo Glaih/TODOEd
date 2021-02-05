@@ -5,7 +5,7 @@ import os.path
 from func.validate import validation_response
 
 path = str(os.path.abspath('./'))
-db = path + '\TODOed\\api\db\\auth.db'
+db = path + '\\db\\auth.db'
 
 # ------------------------------------------------------------------------------
 # Creating hash for db from pw and checking if acquired pw matches hash from db.
@@ -27,6 +27,7 @@ def password_match(psw, hashed):
 
 
 def write_in_usr_db(email, psw):
+    print(db)
     values = (email, password_hash(psw))
     user_get = validation_response(email, psw)
     if user_get is True:
