@@ -28,8 +28,8 @@ def password_match(psw, hashed):
 
 def write_in_usr_db(email, psw):
     print(db)
-    values = (email, password_hash(psw))
-    user_get = validation_response(email, psw)
+    values = (email.strip(), password_hash(psw))
+    user_get = validation_response(email.strip(), psw)
     if user_get is True:
         try:
             conn = sqlite3.connect(db)
