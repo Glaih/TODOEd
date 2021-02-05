@@ -27,7 +27,7 @@ def validation_response(email, psw):
     elif not validate_psw(psw) and validate_mail(email):
         return jsonify({'errors': {'password': 'Password must be 8 - 30 symbols long'}}), 400
 
-    elif not validate_mail(email) and  not validate_psw(psw):
+    elif not validate_mail(email) and not validate_psw(psw):
         return jsonify({
                         'errors': {'password': 'Password must be 8 - 30 symbols long',
                                    'email': 'Incorrect email'}}), 400
