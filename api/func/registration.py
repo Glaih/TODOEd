@@ -43,6 +43,6 @@ def write_in_usr_db(email, psw):
             return jsonify({'success': 'User has been registered'}), 200
 
         except sqlite3.IntegrityError:
-            return jsonify({'duplicate_error': 'User already exists'}), 400
+            return jsonify({'errors': {'mail': 'User already exists'}}), 400
     else:
         return user_get
