@@ -18,16 +18,16 @@ def validate_psw(psw):
 
 
 def validation_response(email, psw):
-    if validate_mail(email) is True and validate_psw(psw) is True:
+    if validate_mail(email) and validate_psw(psw):
         return True
 
-    elif validate_mail(email) is not True and validate_psw(psw) is True:
+    elif not validate_mail(email) and validate_psw(psw):
         return jsonify({'mail_error': 'Invalid Email address'}), 400
 
-    elif validate_psw(psw) is not True and validate_mail(email) is True:
+    elif not validate_psw(psw) and validate_mail(email):
         return jsonify({'psw_error': 'Password must be 8 - 30 symbols long'}), 400
 
-    elif validate_mail(email) is not True and validate_psw(psw) is not True:
+    elif not validate_mail(email) and  not validate_psw(psw):
         return jsonify({
                         'mail_error': 'Invalid Email address',
                         'psw_error': 'Password must be 8 - 30 symbols long'
