@@ -26,8 +26,6 @@ class TestBase(unittest.TestCase):
 
 
 class TestRegistration(TestBase):
-    def setUp(self):
-        pass
 
     def test_begin_valid(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
