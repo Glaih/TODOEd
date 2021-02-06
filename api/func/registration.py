@@ -4,7 +4,6 @@ import os.path
 from func.validate import validation_response
 
 path = str(os.path.abspath('./'))
-#db = path + '\\db\\auth.db'
 db = 'api/db/auth.db'
 
 # ------------------------------------------------------------------------------
