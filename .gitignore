@@ -4,6 +4,4 @@ test.py
 venv
 .idea
 .git
-api/temp/test_res.txt
 .pytest_cache
-temp
