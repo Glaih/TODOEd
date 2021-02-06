@@ -7,23 +7,25 @@ path = 'api/db/auth.db'
 clear_db(path)
 
 
-def request(text):
-    response = app.test_client().post('/api/v1/users/',
-                                      data=json.dumps(text),
-                                      content_type='application/json',
-                                      )
-    data = json.loads(response.get_data(as_text=True))
-    print('\n' + '-------------------------------------------------------------------------')
-    print('-------------------------------------------------------------------------')
-    print(text)
-    print(data, response.status_code)
-    print('-------------------------------------------------------------------------')
-    print('-------------------------------------------------------------------------')
+class TestBase(unittest.TestCase):
 
-    return response, data
+    def request(self, text):
+        response = app.test_client().post('/api/v1/users/',
+                                          data=json.dumps(text),
+                                          content_type='application/json',
+                                          )
+        data = json.loads(response.get_data(as_text=True))
+        print('\n' + '-------------------------------------------------------------------------')
+        print('-------------------------------------------------------------------------')
+        print(text)
+        print(data, response.status_code)
+        print('-------------------------------------------------------------------------')
+        print('-------------------------------------------------------------------------')
+
+        return response, data
 
 
-class TestRegistration(unittest.TestCase):
+class TestRegistration(TestBase):
     def setUp(self):
         pass
 
@@ -32,7 +34,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test1')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], "User has been registered")
@@ -42,7 +44,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test2')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'mail': 'User already exists'})
@@ -50,7 +52,7 @@ class TestRegistration(unittest.TestCase):
     def test_fwd_space_mail(self):
         request_json = {"email": " test3@mail.ru", "password": "qwerty789012345"}
         print('Test3')
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], "User has been registered")
@@ -60,7 +62,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test4')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], "User has been registered")
@@ -70,7 +72,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test5')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], "User has been registered")
@@ -80,7 +82,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test6')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long',
@@ -91,7 +93,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test7')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
@@ -101,7 +103,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test8')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
@@ -111,7 +113,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test9')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
@@ -121,7 +123,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test10')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
@@ -131,7 +133,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test11')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
@@ -141,7 +143,7 @@ class TestRegistration(unittest.TestCase):
 
         print('Test12')
 
-        response, data = request(request_json)
+        response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
