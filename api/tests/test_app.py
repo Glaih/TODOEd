@@ -2,9 +2,10 @@ from app import app
 from flask import json
 from clear_db import clear_db
 import unittest
+from func.registration import auth_path
 
-path = 'api/db/auth.db'
-clear_db(path)
+
+clear_db(auth_path)
 
 
 class TestBase(unittest.TestCase):
@@ -126,7 +127,7 @@ class TestRegistration(TestBase):
 
     @classmethod
     def tearDownClass(cls):
-        clear_db(path)
+        clear_db(auth_path)
 
 
 if __name__ == '__main__':
