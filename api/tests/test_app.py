@@ -47,7 +47,7 @@ class TestRegistration(TestBase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'mail': 'User already exists'})
 
-    def test_fwd_space_mail(self):
+    def test_startswith_space_mail(self):
         request_json = {"email": " test3@mail.ru", "password": "qwerty789012345"}
         print('Test3')
         response, data = TestBase.request(self, request_json)
@@ -55,7 +55,7 @@ class TestRegistration(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], "User has been registered")
 
-    def test_fwd_end_space_mail(self):
+    def test_starts_endswith_space_mail(self):
         request_json = {"email": " test4@mail.ru ", "password": "qwerty432#%3fdDFG"}
 
         print('Test4')
@@ -65,7 +65,7 @@ class TestRegistration(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], "User has been registered")
 
-    def test_end_space_mail(self):
+    def test_endswith_space_mail(self):
         request_json = {"email": "test5@mail.ru ", "password": "qwerty432#%3fdDFG"}
 
         print('Test5')
@@ -106,7 +106,7 @@ class TestRegistration(TestBase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
 
-    def test_psw_0(self):
+    def test_psw_no_chars(self):
         request_json = {"email": "test9@mail.com", "password": ""}
 
         print('Test9')
@@ -126,7 +126,7 @@ class TestRegistration(TestBase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
 
-    def test_comma_inst_dot_mail(self):
+    def test_comma_instead_dot_mail(self):
         request_json = {"email": "test11@mail,com", "password": "112345678901"}
 
         print('Test11')
@@ -136,7 +136,7 @@ class TestRegistration(TestBase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
 
-    def test_comma_inst_at_mail(self):
+    def test_comma_instead_at_mail(self):
         request_json = {"email": "test12,mail.com", "password": "456789012345678901"}
 
         print('Test12')
