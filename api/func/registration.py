@@ -1,6 +1,5 @@
 import sqlite3
 import bcrypt
-from flask import jsonify
 import os.path
 from func.validate import validation_response
 
@@ -27,7 +26,6 @@ def password_match(psw, hashed):
 
 
 def write_in_usr_db(email, psw):
-    print(db)
     values = (email.strip(), password_hash(psw))
     user_get = validation_response(email.strip(), psw)
     if user_get is True:
@@ -40,9 +38,9 @@ def write_in_usr_db(email, psw):
             conn.commit()
             conn.close()
 
-            return jsonify({'success': 'User has been registered'}), 200
+            return {'success': 'User has been registered'}, 200
 
         except sqlite3.IntegrityError:
-            return jsonify({'errors': {'mail': 'User already exists'}}), 400
+            return {'errors': {'mail': 'User already exists'}}, 400
     else:
         return user_get

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from func.registration import write_in_usr_db
 
 
@@ -13,9 +13,9 @@ def registration():
         return write_in_usr_db(auth_request['email'], auth_request['password'])
 
     except TypeError:
-        return jsonify({'type_error': 'data must be in json format'}), 400
+        return {'type_error': 'data must be in json format'}, 400
     except KeyError:
-        return jsonify({'json_key_error': 'wrong keys'}), 400
+        return {'json_key_error': 'wrong keys'}, 400
 
 
 if __name__ == '__main__':
