@@ -1,8 +1,10 @@
 import sqlite3
 import bcrypt
+
 from func.validate import validation_response
 
-auth_path = 'api/db/auth.db'
+
+auth_path = 'db/auth.db'
 
 # ------------------------------------------------------------------------------
 # Creating hash for db from pw and checking if acquired pw matches hash from db.

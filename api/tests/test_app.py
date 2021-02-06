@@ -1,7 +1,8 @@
-from app import app
-from flask import json
-from clear_db import clear_db
 import unittest
+from flask import json
+
+from app import app
+from clear_db import clear_db
 from func.registration import auth_path
 
 
