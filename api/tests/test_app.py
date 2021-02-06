@@ -30,8 +30,6 @@ class TestRegistration(TestBase):
     def test_begin_valid(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
 
-        print('Test1')
-
         response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 200)
@@ -40,8 +38,6 @@ class TestRegistration(TestBase):
     def test_double(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty789012345678901234567890"}
 
-        print('Test2')
-
         response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
@@ -49,7 +45,7 @@ class TestRegistration(TestBase):
 
     def test_startswith_space_mail(self):
         request_json = {"email": " test3@mail.ru", "password": "qwerty789012345"}
-        print('Test3')
+
         response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 200)
@@ -57,8 +53,6 @@ class TestRegistration(TestBase):
 
     def test_starts_endswith_space_mail(self):
         request_json = {"email": " test4@mail.ru ", "password": "qwerty432#%3fdDFG"}
-
-        print('Test4')
 
         response, data = TestBase.request(self, request_json)
 
@@ -68,8 +62,6 @@ class TestRegistration(TestBase):
     def test_endswith_space_mail(self):
         request_json = {"email": "test5@mail.ru ", "password": "qwerty432#%3fdDFG"}
 
-        print('Test5')
-
         response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 200)
@@ -77,8 +69,6 @@ class TestRegistration(TestBase):
 
     def test_psw_short_no_tld(self):
         request_json = {"email": "test6@mail", "password": "qwerty7"}
-
-        print('Test6')
 
         response, data = TestBase.request(self, request_json)
 
@@ -89,8 +79,6 @@ class TestRegistration(TestBase):
     def test_no_at_mail(self):
         request_json = {"email": "test7mail.ru", "password": "qwerty432#%3fdDFG"}
 
-        print('Test7')
-
         response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
@@ -98,8 +86,6 @@ class TestRegistration(TestBase):
 
     def test_no_dot_mail(self):
         request_json = {"email": "test8@mail.com", "password": "1234567890123456789012345678901"}
-
-        print('Test8')
 
         response, data = TestBase.request(self, request_json)
 
@@ -109,8 +95,6 @@ class TestRegistration(TestBase):
     def test_psw_no_chars(self):
         request_json = {"email": "test9@mail.com", "password": ""}
 
-        print('Test9')
-
         response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
@@ -118,8 +102,6 @@ class TestRegistration(TestBase):
 
     def test_no_dot_no_at_mail(self):
         request_json = {"email": "test10mailcom", "password": "456789012345678901"}
-
-        print('Test10')
 
         response, data = TestBase.request(self, request_json)
 
@@ -129,8 +111,6 @@ class TestRegistration(TestBase):
     def test_comma_instead_dot_mail(self):
         request_json = {"email": "test11@mail,com", "password": "112345678901"}
 
-        print('Test11')
-
         response, data = TestBase.request(self, request_json)
 
         self.assertEqual(response.status_code, 400)
@@ -138,8 +118,6 @@ class TestRegistration(TestBase):
 
     def test_comma_instead_at_mail(self):
         request_json = {"email": "test12,mail.com", "password": "456789012345678901"}
-
-        print('Test12')
 
         response, data = TestBase.request(self, request_json)
 
