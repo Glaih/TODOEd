@@ -4,7 +4,8 @@ import os.path
 from func.validate import validation_response
 
 path = str(os.path.abspath('./'))
-db = path + '\\db\\auth.db'
+#db = path + '\\db\\auth.db'
+db = 'api/db/auth.db'
 
 # ------------------------------------------------------------------------------
 # Creating hash for db from pw and checking if acquired pw matches hash from db.
