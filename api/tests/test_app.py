@@ -13,12 +13,13 @@ logging.basicConfig(format='%(asctime)s - %(name)s:%(message)s',
                     filename='app.log',
                     level=logging.INFO)
 
-char_multiplier = 50
+char_multiplier = 70
 
 
 class TestBase(unittest.TestCase):
 
-    def request(self, text):
+    @staticmethod
+    def request(text):
         with app.test_request_context():
             response = app.test_client().post(url_for('registration'), json=text)
         data = json.loads(response.get_data(as_text=True))
@@ -28,7 +29,8 @@ class TestBase(unittest.TestCase):
 
         return response, data
 
-    def splitter(self):
+    @staticmethod
+    def splitter():
         logger.info('-' * char_multiplier)
         logger.info('*' * char_multiplier)
         logger.info('-' * char_multiplier)
@@ -37,11 +39,11 @@ class TestBase(unittest.TestCase):
 class TestRegistration(TestBase):
     @classmethod
     def setUpClass(cls):
-        TestBase.splitter(cls)
+        cls.splitter()
         clear_db(DB_PATH)
         logger.info(f'DB CLEARED: {os.path.abspath(DB_PATH)}')
         logger.info(f'TESTING START')
-        TestBase.splitter(cls)
+        cls.splitter()
 
     def setUp(self):
         logger.info('-' * char_multiplier)
@@ -49,9 +51,17 @@ class TestRegistration(TestBase):
     def tearDown(self):
         logger.info('-' * char_multiplier)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.splitter()
+        logger.info(f'TESTING END')
+        clear_db(DB_PATH)
+        logger.info(f'DB CLEARED: {os.path.abspath(DB_PATH)}')
+        cls.splitter()
+
     def test_begin_valid(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'success': 'User has been registered', 200")
 
@@ -66,8 +76,8 @@ class TestRegistration(TestBase):
 
     def test_double(self):
         request_json = {"email": "tests_doouble@mail.ru", "password": "qwerty789012345678901234567890"}
-        TestBase.request(self, request_json)
-        response, data = TestBase.request(self, request_json)
+        self.request(request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'mail': 'User already exists', 400")
 
@@ -82,7 +92,7 @@ class TestRegistration(TestBase):
 
     def test_startswith_space_mail(self):
         request_json = {"email": " test3@mail.ru", "password": "qwerty789012345"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'success': 'User has been registered', 200")
 
@@ -97,7 +107,7 @@ class TestRegistration(TestBase):
 
     def test_starts_endswith_space_mail(self):
         request_json = {"email": " test4@mail.ru ", "password": "qwerty432#%3fdDFG"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'success': 'User has been registered', 200")
 
@@ -112,7 +122,7 @@ class TestRegistration(TestBase):
 
     def test_endswith_space_mail(self):
         request_json = {"email": "test5@mail.ru ", "password": "qwerty432#%3fdDFG"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'success': 'User has been registered', 200")
 
@@ -127,7 +137,7 @@ class TestRegistration(TestBase):
 
     def test_psw_short_no_tld(self):
         request_json = {"email": "test6@mail", "password": "qwerty7"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'password': 'Password must be 8 - 30 symbols long', "
                     f"'email': 'Incorrect email', 200")
@@ -145,7 +155,7 @@ class TestRegistration(TestBase):
 
     def test_no_at_mail(self):
         request_json = {"email": "test7mail.ru", "password": "qwerty432#%3fdDFG"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'email': 'Incorrect email'")
 
@@ -160,7 +170,7 @@ class TestRegistration(TestBase):
 
     def test_no_dot_mail(self):
         request_json = {"email": "test8@mail.com", "password": "1234567890123456789012345678901"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'password': 'Password must be 8 - 30 symbols long'")
 
@@ -175,7 +185,7 @@ class TestRegistration(TestBase):
 
     def test_psw_no_chars(self):
         request_json = {"email": "test9@mail.com", "password": ""}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'password': 'Password must be 8 - 30 symbols long'")
 
@@ -190,7 +200,7 @@ class TestRegistration(TestBase):
 
     def test_no_dot_no_at_mail(self):
         request_json = {"email": "test10mailcom", "password": "456789012345678901"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'email': 'Incorrect email'")
 
@@ -205,7 +215,7 @@ class TestRegistration(TestBase):
 
     def test_comma_instead_dot_mail(self):
         request_json = {"email": "test11@mail,com", "password": "112345678901"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'email': 'Incorrect email'")
 
@@ -220,7 +230,7 @@ class TestRegistration(TestBase):
 
     def test_comma_instead_at_mail(self):
         request_json = {"email": "test12,mail.com", "password": "456789012345678901"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'errors': 'email': 'Incorrect email'")
 
@@ -235,7 +245,7 @@ class TestRegistration(TestBase):
 
     def test_not_json(self):
         request_json = 'not JSON'
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'type_error': 'data must be in json format', 400")
 
@@ -250,7 +260,7 @@ class TestRegistration(TestBase):
 
     def test_wrong_keys(self):
         request_json = {"passworddd": "qwerty78"}
-        response, data = TestBase.request(self, request_json)
+        response, data = self.request(request_json)
 
         logger.info(f"EXPECTED: 'json_key_error': 'wrong keys', 200")
 
@@ -262,14 +272,6 @@ class TestRegistration(TestBase):
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["json_key_error"], "wrong keys")
-
-    @classmethod
-    def tearDownClass(cls):
-        TestBase.splitter(cls)
-        logger.info(f'TESTING END')
-        clear_db(DB_PATH)
-        logger.info(f'DB CLEARED: {os.path.abspath(DB_PATH)}')
-        TestBase.splitter(cls)
 
 
 if __name__ == '__main__':

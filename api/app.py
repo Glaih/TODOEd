@@ -1,4 +1,4 @@
-from flask import Flask, request, url_for
+from flask import Flask, request
 from func.registration import write_in_usr_db
 import logging
 
