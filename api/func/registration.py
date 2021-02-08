@@ -2,7 +2,7 @@ import sqlite3
 import bcrypt
 import logging
 
-from func.validate import validation_response
+from validate import validation_response
 
 
 logger = logging.getLogger(__name__)

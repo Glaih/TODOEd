@@ -1,5 +1,8 @@
 import sqlite3
 import logging
+import os
+
+from registration import DB_PATH
 
 
 logger = logging.getLogger(__name__)
@@ -22,4 +25,4 @@ def clear_db(path):
 
 
 if __name__ == '__main__':
-    clear_db('../db/auth.db')
+    clear_db('../' + DB_PATH)

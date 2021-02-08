@@ -10,27 +10,27 @@ from func.registration import DB_PATH
 
 
 logger = logging.getLogger(__name__)
-char_multiplier = 70
+CHAR_MULTIPLIER = 79
 
 
 class TestBase(unittest.TestCase):
 
     @staticmethod
-    def request(text):
+    def request(json_data):
         with app.test_request_context():
-            response = app.test_client().post(url_for('registration'), json=text)
-        data = json.loads(response.get_data(as_text=True))
+            response = app.test_client().post(url_for('registration'), json=json_data)
+        data = response.get_json()
 
-        logger.info(f'REQUEST: {text}')
+        logger.debug(f'REQUEST: {json_data}')
         logger.info(f'ACTUAL :{response} | {data}')
 
         return response, data
 
     @staticmethod
     def splitter():
-        logger.info('-' * char_multiplier)
-        logger.info('*' * char_multiplier)
-        logger.info('-' * char_multiplier)
+        logger.info('-' * CHAR_MULTIPLIER)
+        logger.info('*' * CHAR_MULTIPLIER)
+        logger.info('-' * CHAR_MULTIPLIER)
 
 
 class TestRegistration(TestBase):
@@ -43,10 +43,10 @@ class TestRegistration(TestBase):
         cls.splitter()
 
     def setUp(self):
-        logger.info('-' * char_multiplier)
+        logger.info('-' * CHAR_MULTIPLIER)
 
     def tearDown(self):
-        logger.info('-' * char_multiplier)
+        logger.info('-' * CHAR_MULTIPLIER)
 
     @classmethod
     def tearDownClass(cls):
@@ -65,7 +65,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 200)
             self.assertEqual(data["success"], "User has been registered")
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 200)
@@ -81,7 +81,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'mail': 'User already exists'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -96,7 +96,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 200)
             self.assertEqual(data["success"], "User has been registered")
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 200)
@@ -111,7 +111,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 200)
             self.assertEqual(data["success"], "User has been registered")
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 200)
@@ -126,7 +126,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 200)
             self.assertEqual(data["success"], "User has been registered")
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 200)
@@ -143,7 +143,7 @@ class TestRegistration(TestBase):
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long',
                                               'email': 'Incorrect email'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -159,7 +159,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'email': 'Incorrect email'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -174,7 +174,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -189,7 +189,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -204,7 +204,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'email': 'Incorrect email'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -219,7 +219,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'email': 'Incorrect email'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -234,7 +234,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'email': 'Incorrect email'})
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -249,7 +249,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["type_error"], "data must be in json format")
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
@@ -264,7 +264,7 @@ class TestRegistration(TestBase):
         try:
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["json_key_error"], "wrong keys")
-            logger.info('PASSED!')
+            logger.debug('PASSED!')
         except AssertionError:
             logger.exception('FAILED!')
             self.assertEqual(response.status_code, 400)
