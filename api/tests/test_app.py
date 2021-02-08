@@ -1,5 +1,5 @@
 import unittest
-from flask import json
+from flask import json, url_for
 import logging
 import os
 
@@ -19,9 +19,8 @@ char_multiplier = 50
 class TestBase(unittest.TestCase):
 
     def request(self, text):
-        response = app.test_client().post('/api/v1/users/',
-                                          data=json.dumps(text),
-                                          content_type='application/json')
+        with app.test_request_context():
+            response = app.test_client().post(url_for('registration'), json=text)
         data = json.loads(response.get_data(as_text=True))
 
         logger.info(f'REQUEST: {text}')
