@@ -9,9 +9,11 @@ from func.registration import DB_PATH
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(asctime)s - %(name)s:%(message)s',
-                    filename='app.log',
-                    level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s:%(message)s',
+    filename='app.log',
+    level=logging.INFO,
+)
 
 char_multiplier = 70
 

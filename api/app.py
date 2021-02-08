@@ -6,9 +6,11 @@ import logging
 app = Flask(__name__)
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format='%(asctime)s - %(name)s:%(message)s',
-                    filename='app.log',
-                    level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s:%(message)s',
+    filename='app.log',
+    level=logging.INFO,
+)
 
 
 @app.route('/api/v1/users/', methods=['POST'])
