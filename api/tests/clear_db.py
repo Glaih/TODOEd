@@ -1,8 +1,16 @@
 import sqlite3
+from app_logger import app_logger
+
+
+logger = app_logger(__name__)
 
 
 def clear_db(path):
-    conn = sqlite3.connect(path)
+    try:
+        conn = sqlite3.connect(path)
+    except sqlite3.OperationalError:
+        logger.exception('DB_ERROR: DB does not exist.')
+        quit()
 
     c = conn.cursor()
 

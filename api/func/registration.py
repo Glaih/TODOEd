@@ -2,7 +2,10 @@ import sqlite3
 import bcrypt
 
 from func.validate import validation_response
+from app_logger import app_logger
 
+
+logger = app_logger(__name__)
 
 DB_PATH = 'db/test_auth.db'
 
@@ -31,17 +34,23 @@ def write_in_usr_db(email, psw):
     user_get = validation_response(email.strip(), psw)
     if user_get is True:
         try:
-            conn = sqlite3.connect(DB_PATH)
+            try:
+                conn = sqlite3.connect(DB_PATH)
+            except sqlite3.OperationalError:
+                logger.exception("DB_ERROR: 'DB does not exist.'")
+                quit()
+
             c = conn.cursor()
 
             c.execute("INSERT INTO auth (mail, psw) VALUES (?, ?)", values)
 
             conn.commit()
             conn.close()
-
+            logger.info("SUCCESS: 'User has been registered.'")
             return {'success': 'User has been registered'}, 200
 
         except sqlite3.IntegrityError:
+            logger.exception("ERROR: 'User already exists.'")
             return {'errors': {'mail': 'User already exists'}}, 400
     else:
         return user_get

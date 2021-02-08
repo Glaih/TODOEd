@@ -1,20 +1,15 @@
 import unittest
 from flask import json, url_for
-import logging
 import os
+
 
 from app import app
 from tests.clear_db import clear_db
 from func.registration import DB_PATH
+from app_logger import app_logger
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    format='%(asctime)s - %(name)s:%(message)s',
-    filename='app.log',
-    level=logging.INFO,
-)
-
+logger = app_logger(__name__)
 char_multiplier = 70
 
 
