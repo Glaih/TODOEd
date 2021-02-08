@@ -14,4 +14,4 @@ def clear_db(path):
 
 
 if __name__ == '__main__':
-    clear_db('db/auth.db')
+    clear_db('../db/auth.db')

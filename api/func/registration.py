@@ -4,7 +4,8 @@ import bcrypt
 from func.validate import validation_response
 
 
-auth_path = 'db/auth.db'
+DB_PATH = 'db/test_auth.db'
+
 
 # ------------------------------------------------------------------------------
 # Creating hash for db from pw and checking if acquired pw matches hash from db.
@@ -30,7 +31,7 @@ def write_in_usr_db(email, psw):
     user_get = validation_response(email.strip(), psw)
     if user_get is True:
         try:
-            conn = sqlite3.connect(auth_path)
+            conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
 
             c.execute("INSERT INTO auth (mail, psw) VALUES (?, ?)", values)
