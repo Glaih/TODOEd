@@ -1,8 +1,8 @@
 import re
-from app_logger import app_logger
+import logging
 
 
-logger = app_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def validate_mail(email):

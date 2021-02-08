@@ -1,11 +1,11 @@
 import sqlite3
 import bcrypt
+import logging
 
 from func.validate import validation_response
-from app_logger import app_logger
 
 
-logger = app_logger(__name__)
+logger = logging.getLogger(__name__)
 
 DB_PATH = 'db/test_auth.db'
 

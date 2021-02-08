@@ -1,15 +1,15 @@
 import unittest
 from flask import json, url_for
 import os
+import logging
 
 
 from app import app
 from tests.clear_db import clear_db
 from func.registration import DB_PATH
-from app_logger import app_logger
 
 
-logger = app_logger(__name__)
+logger = logging.getLogger(__name__)
 char_multiplier = 70
 
 
@@ -132,7 +132,7 @@ class TestRegistration(TestBase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(data["success"], "User has been registered")
 
-    def test_psw_short_no_tld(self):
+    def test_short_password_no_tld(self):
         request_json = {"email": "test6@mail", "password": "qwerty7"}
         response, data = self.request(request_json)
 
@@ -180,7 +180,7 @@ class TestRegistration(TestBase):
             self.assertEqual(response.status_code, 400)
             self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
 
-    def test_psw_no_chars(self):
+    def test_password_length_zero(self):
         request_json = {"email": "test9@mail.com", "password": ""}
         response, data = self.request(request_json)
 
