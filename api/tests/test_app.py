@@ -5,7 +5,6 @@ from unittest import mock
 from flask import url_for
 import logging
 
-
 from app import app
 from tests.clear_db import clear_db
 

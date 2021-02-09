@@ -7,7 +7,7 @@ from func.registration import write_in_usr_db
 logging.basicConfig(
     format='%(asctime)s - %(name)s:%(message)s',
     filename=Path(__file__, '../app.log').resolve(),
-    level=logging.info,
+    level=20,
 )
 
 app = Flask(__name__)
@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 def registration():
     try:
         auth_request = request.get_json()
-        logger.info('JSON acquired')
         return write_in_usr_db(auth_request['email'], auth_request['password'])
 
     except TypeError:
