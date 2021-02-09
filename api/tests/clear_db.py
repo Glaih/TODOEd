@@ -1,8 +1,5 @@
 import sqlite3
 import logging
-import os
-
-from registration import DB_PATH
 
 
 logger = logging.getLogger(__name__)
@@ -12,7 +9,7 @@ def clear_db(path):
     try:
         conn = sqlite3.connect(path)
     except sqlite3.OperationalError:
-        logger.exception('DB_ERROR: DB does not exist.')
+        logger.exception(f'DB_ERROR: DB {path=} does not exist.')
         quit()
 
     c = conn.cursor()
@@ -23,6 +20,3 @@ def clear_db(path):
     conn.commit()
     conn.close()
 
-
-if __name__ == '__main__':
-    clear_db('../' + DB_PATH)
