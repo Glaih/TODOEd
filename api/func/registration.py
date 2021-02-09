@@ -9,6 +9,7 @@ from .validate import validation_response
 logger = logging.getLogger(__name__)
 
 DB_PATH = Path(__file__, '../../db/auth.db').resolve()
+DB_DIR = Path(DB_PATH).parent
 
 # ------------------------------------------------------------------------------
 # Creating hash for db from pw and checking if acquired pw matches hash from db.
