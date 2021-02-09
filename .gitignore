@@ -4,3 +4,5 @@ test.py
 venv
 .idea
 .git
+.pytest_cache
+*.log

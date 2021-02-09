@@ -1,10 +1,15 @@
 import sqlite3
 import bcrypt
-import os.path
-from func.validate import validation_response
+import logging
+from pathlib import Path
 
-path = str(os.path.abspath('./'))
-db = path + '\\db\\auth.db'
+from .validate import validation_response
+
+
+logger = logging.getLogger(__name__)
+
+DB_PATH = Path(__file__, '../../db/auth.db').resolve()
+DB_DIR = Path(DB_PATH).parent
 
 # ------------------------------------------------------------------------------
 # Creating hash for db from pw and checking if acquired pw matches hash from db.
@@ -30,17 +35,22 @@ def write_in_usr_db(email, psw):
     user_get = validation_response(email.strip(), psw)
     if user_get is True:
         try:
-            conn = sqlite3.connect(db)
-            c = conn.cursor()
+            conn = sqlite3.connect(DB_PATH)
+        except sqlite3.OperationalError:
+            logger.exception(f"DB_ERROR: 'DB {DB_PATH=} does not exist.'")
+            quit()
 
+        c = conn.cursor()
+
+        try:
             c.execute("INSERT INTO auth (mail, psw) VALUES (?, ?)", values)
-
-            conn.commit()
-            conn.close()
-
-            return {'success': 'User has been registered'}, 200
-
         except sqlite3.IntegrityError:
+            logger.exception("ERROR: 'User already exists.'")
             return {'errors': {'mail': 'User already exists'}}, 400
-    else:
-        return user_get
+
+        conn.commit()
+        conn.close()
+        logger.info("SUCCESS: 'User has been registered.'")
+        return {'success': 'User has been registered'}, 200
+
+    return user_get
