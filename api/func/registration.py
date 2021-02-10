@@ -22,8 +22,7 @@ def password_hash(psw):
 
 
 def password_match(psw, hashed):
-    if bcrypt.checkpw(psw, hashed):
-        print("match")
+    return bcrypt.checkpw(psw, hashed)
 
 
 # ------------------------------------------------------------------------------
