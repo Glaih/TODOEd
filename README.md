@@ -1,5 +1,5 @@
 # TODOEd
-Simple TODO list management application with auth using Flask and SQLite.
+Simple TODOlist management application with auth using Flask and SQLite.
   
     api/ - app root
         app.py - api
