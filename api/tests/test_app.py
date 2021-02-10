@@ -6,10 +6,8 @@ import logging
 import sqlite3
 from bcrypt import checkpw
 
-
 from app import app
 from tests.clear_db import clear_db
-from tests.generatepsw import generatepsw
 
 
 logger = logging.getLogger(__name__)
@@ -142,20 +140,16 @@ class TestRegistration(TestBase):
         mail = ["test5@mail.ru"]
 
         self.request({"email": "test5@mail.ru ", "password": password})
-        if Path(TEST_DB_PATH).is_file():
-            conn = sqlite3.connect(TEST_DB_PATH)
-            c = conn.cursor()
-            c.execute("SELECT psw FROM auth where mail=?", mail)
-            password_in_db = c.fetchone()
-            conn.commit()
-            conn.close()
 
-            self.assertTrue(checkpw(password.encode(), *password_in_db))
-            self.assertFalse(checkpw(invalid_password.encode(), *password_in_db))
+        conn = sqlite3.connect(TEST_DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT psw FROM auth where mail=?", mail)
+        password_in_db = c.fetchone()
+        conn.commit()
+        conn.close()
 
-        else:
-            logger.error(f'DB_ERROR: DB {TEST_DB_PATH=} does not exist.')
-            return {'errors': {'database': 'Database path does not exist'}}, 400
+        self.assertTrue(checkpw(password.encode(), *password_in_db))
+        self.assertFalse(checkpw(invalid_password.encode(), *password_in_db))
 
 
 if __name__ == '__main__':
