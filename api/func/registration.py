@@ -17,13 +17,8 @@ DB_DIR = Path(DB_PATH).parent
 
 def password_hash(psw):
     salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(b'psw', salt)
+    hashed = bcrypt.hashpw(psw.encode(), salt)
     return hashed
-
-
-def password_match(psw, hashed):
-    if bcrypt.checkpw(psw, hashed):
-        print("match")
 
 
 # ------------------------------------------------------------------------------

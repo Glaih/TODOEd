@@ -1,9 +1,10 @@
 import unittest
-from pathlib import Path
 from unittest import mock
-
+from pathlib import Path
 from flask import url_for
 import logging
+import sqlite3
+from bcrypt import checkpw
 
 from app import app
 from tests.clear_db import clear_db
@@ -26,8 +27,7 @@ class TestBase(unittest.TestCase):
 
 @mock.patch('func.registration.DB_PATH', TEST_DB_PATH)
 class TestRegistration(TestBase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         clear_db(TEST_DB_PATH)
 
     @classmethod
@@ -133,6 +133,23 @@ class TestRegistration(TestBase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["json_key_error"], "wrong keys")
+
+    def test_password_written(self):
+        password = 'Rgf6b33/Qd]'
+        invalid_password = 'ctg45r[YFB!5'
+        mail = ["test5@mail.ru"]
+
+        self.request({"email": "test5@mail.ru ", "password": password})
+
+        conn = sqlite3.connect(TEST_DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT psw FROM auth where mail=?", mail)
+        password_in_db = c.fetchone()
+        conn.commit()
+        conn.close()
+
+        self.assertTrue(checkpw(password.encode(), *password_in_db))
+        self.assertFalse(checkpw(invalid_password.encode(), *password_in_db))
 
 
 if __name__ == '__main__':
