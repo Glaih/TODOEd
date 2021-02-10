@@ -21,10 +21,6 @@ def password_hash(psw):
     return hashed
 
 
-def password_match(psw, hashed):
-    return bcrypt.checkpw(psw, hashed)
-
-
 # ------------------------------------------------------------------------------
 # Writing usr mail and usr pw in user db.
 

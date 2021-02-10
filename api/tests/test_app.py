@@ -4,12 +4,10 @@ from pathlib import Path
 from flask import url_for
 import logging
 import sqlite3
-
+from bcrypt import checkpw
 
 from app import app
 from tests.clear_db import clear_db
-from func.registration import password_match, password_hash
-from tests.generatepsw import generatepsw
 
 
 logger = logging.getLogger(__name__)
@@ -137,8 +135,8 @@ class TestRegistration(TestBase):
         self.assertEqual(data["json_key_error"], "wrong keys")
 
     def test_password_written(self):
-        password = generatepsw()
-        invalid_password = generatepsw()
+        password = 'Rgf6b33/Qd]'
+        invalid_password = 'ctg45r[YFB!5'
         mail = ["test5@mail.ru"]
 
         self.request({"email": "test5@mail.ru ", "password": password})
@@ -150,8 +148,8 @@ class TestRegistration(TestBase):
         conn.commit()
         conn.close()
 
-        self.assertTrue(password_match(password.encode(), *password_in_db))
-        self.assertFalse(password_match(invalid_password.encode(), *password_in_db))
+        self.assertTrue(checkpw(password.encode(), *password_in_db))
+        self.assertFalse(checkpw(invalid_password.encode(), *password_in_db))
 
 
 if __name__ == '__main__':
