@@ -17,7 +17,7 @@ DB_DIR = Path(DB_PATH).parent
 
 def password_hash(psw):
     salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(bytes(psw, 'utf-8'), salt)
+    hashed = bcrypt.hashpw(psw.encode(), salt)
     return hashed
 
 
