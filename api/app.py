@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 
 @app.route('/api/v1/users/', methods=['POST'])
 def registration():
+
+    auth_request = request.get_json()
+
     try:
-        auth_request = request.get_json()
         return write_in_usr_db(auth_request['email'], auth_request['password'])
 
     except TypeError:

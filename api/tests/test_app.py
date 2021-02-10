@@ -142,16 +142,20 @@ class TestRegistration(TestBase):
         mail = ["test5@mail.ru"]
 
         self.request({"email": "test5@mail.ru ", "password": password})
+        if Path(TEST_DB_PATH).is_file():
+            conn = sqlite3.connect(TEST_DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT psw FROM auth where mail=?", mail)
+            password_in_db = c.fetchone()
+            conn.commit()
+            conn.close()
 
-        conn = sqlite3.connect(TEST_DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT psw FROM auth where mail=?", mail)
-        password_in_db = c.fetchone()
-        conn.commit()
-        conn.close()
+            self.assertTrue(password_match(password.encode(), *password_in_db))
+            self.assertFalse(password_match(invalid_password.encode(), *password_in_db))
 
-        self.assertTrue(password_match(password.encode(), *password_in_db))
-        self.assertFalse(password_match(invalid_password.encode(), *password_in_db))
+        else:
+            logger.error(f'DB_ERROR: DB {TEST_DB_PATH=} does not exist.')
+            return {'errors': {'database': 'Database path does not exist'}}, 400
 
 
 if __name__ == '__main__':
