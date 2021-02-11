@@ -7,7 +7,7 @@ from func.registration import write_in_usr_db
 logging.basicConfig(
     format='%(asctime)s - %(name)s:%(message)s',
     filename=Path(__file__, '../app.log').resolve(),
-    level=10,
+    level=logging.DEBUG,
 )
 
 app = Flask(__name__)
