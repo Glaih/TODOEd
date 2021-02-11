@@ -25,50 +25,7 @@ class TestBase(unittest.TestCase):
         return response, data
 
 
-@mock.patch('func.registration.DB_PATH', TEST_DB_PATH)
-class TestRegistration(TestBase):
-    def setUp(self):
-        clear_db(TEST_DB_PATH)
-
-    @classmethod
-    def tearDownClass(cls):
-        clear_db(TEST_DB_PATH)
-
-    def test_begin_valid(self):
-        request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
-        response, data = self.request(request_json)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(data["success"], "User has been registered")
-
-    def test_double(self):
-        request_json = {"email": "tests_doouble@mail.ru", "password": "qwerty789012345678901234567890"}
-        self.request(request_json)
-        response, data = self.request(request_json)
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'mail': 'User already exists'})
-
-    def test_startswith_space_mail(self):
-        request_json = {"email": " test3@mail.ru", "password": "qwerty789012345"}
-        response, data = self.request(request_json)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(data["success"], "User has been registered")
-
-    def test_starts_endswith_space_mail(self):
-        request_json = {"email": " test4@mail.ru ", "password": "qwerty432#%3fdDFG"}
-        response, data = self.request(request_json)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(data["success"], "User has been registered")
-
-    def test_endswith_space_mail(self):
-        request_json = {"email": "test5@mail.ru ", "password": "qwerty432#%3fdDFG"}
-        response, data = self.request(request_json)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(data["success"], "User has been registered")
+class TestRegistrationErrors(TestBase):
 
     def test_short_password_no_tld(self):
         request_json = {"email": "test6@mail", "password": "qwerty7"}
@@ -76,7 +33,7 @@ class TestRegistration(TestBase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long',
-                                              'email': 'Incorrect email'})
+                                          'email': 'Incorrect email'})
 
     def test_no_at_mail(self):
         request_json = {"email": "test7mail.ru", "password": "qwerty432#%3fdDFG"}
@@ -121,7 +78,7 @@ class TestRegistration(TestBase):
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
 
     def test_not_json(self):
-        request_json = 'not JSON'
+        request_json = 32
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
@@ -134,6 +91,54 @@ class TestRegistration(TestBase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["json_key_error"], "wrong keys")
 
+
+@unittest.skipIf(Path(TEST_DB_PATH).is_file() == 0, f'DB_ERROR: DB does not exist.')
+@mock.patch('func.registration.DB_PATH', TEST_DB_PATH)
+class TestRegistrationDb(TestBase):
+
+    def setUp(self):
+        clear_db(TEST_DB_PATH)
+
+    @classmethod
+    def tearDownClass(cls):
+        clear_db(TEST_DB_PATH)
+
+    def test_begin_valid(self):
+        request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
+        response, data = self.request(request_json)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], "User has been registered")
+
+    def test_double(self):
+        request_json = {"email": "tests_doouble@mail.ru", "password": "qwerty789012345678901234567890"}
+        self.request(request_json)
+        response, data = self.request(request_json)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(data["errors"], {'mail': 'User already exists'})
+
+    def test_startswith_space_mail(self):
+        request_json = {"email": " test3@mail.ru", "password": "qwerty789012345"}
+        response, data = self.request(request_json)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], "User has been registered")
+
+    def test_starts_endswith_space_mail(self):
+        request_json = {"email": " test4@mail.ru ", "password": "qwerty432#%3fdDFG"}
+        response, data = self.request(request_json)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], "User has been registered")
+
+    def test_endswith_space_mail(self):
+        request_json = {"email": "test5@mail.ru ", "password": "qwerty432#%3fdDFG"}
+        response, data = self.request(request_json)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], "User has been registered")
+
     def test_password_written(self):
         password = 'Rgf6b33/Qd]'
         invalid_password = 'ctg45r[YFB!5'
@@ -144,7 +149,9 @@ class TestRegistration(TestBase):
         conn = sqlite3.connect(TEST_DB_PATH)
         c = conn.cursor()
         c.execute("SELECT psw FROM auth where mail=?", mail)
+
         password_in_db = c.fetchone()
+
         conn.commit()
         conn.close()
 
