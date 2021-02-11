@@ -29,23 +29,23 @@ def write_in_usr_db(email, psw):
     values = (email.strip(), password_hash(psw))
     user_get = validation_response(email.strip(), psw)
     if user_get is True:
-        try:
+        if DB_PATH.is_file():
             conn = sqlite3.connect(DB_PATH)
-        except sqlite3.OperationalError:
-            logger.exception(f"DB_ERROR: 'DB {DB_PATH=} does not exist.'")
-            quit()
+            c = conn.cursor()
 
-        c = conn.cursor()
+            try:
+                c.execute("INSERT INTO auth (mail, psw) VALUES (?, ?)", values)
+            except sqlite3.IntegrityError:
+                logger.exception(f"ERROR: 'User '{values[0]}' already exists.'")
+                return {'errors': {'mail': 'User already exists'}}, 400
 
-        try:
-            c.execute("INSERT INTO auth (mail, psw) VALUES (?, ?)", values)
-        except sqlite3.IntegrityError:
-            logger.exception("ERROR: 'User already exists.'")
-            return {'errors': {'mail': 'User already exists'}}, 400
+            conn.commit()
+            conn.close()
+            logger.info("SUCCESS: 'User has been registered.'")
+            return {'success': 'User has been registered'}, 200
 
-        conn.commit()
-        conn.close()
-        logger.info("SUCCESS: 'User has been registered.'")
-        return {'success': 'User has been registered'}, 200
+        else:
+            logger.error(f'DB_ERROR: DB {DB_PATH=} does not exist.')
+            return {'errors': {'database': 'Database path does not exist'}}, 400
 
     return user_get

@@ -1,7 +1,8 @@
 import sqlite3
-from func.registration import DB_DIR
-from pathlib import Path
 import logging
+from pathlib import Path
+
+from func.registration import DB_DIR
 
 
 logger = logging.getLogger(__name__)
@@ -18,14 +19,17 @@ def clear_db_name(input_name):
 
 
 def create_base(name):
-    conn = sqlite3.connect(DB_DIR / clear_db_name(name))
+    path = DB_DIR / clear_db_name(name)
+
+    if path.is_file():
+        logger.error("ERROR: 'Database already exist'")
+        return {'errors': {'database': 'Database already exist'}}, 400
+
+    conn = sqlite3.connect(path)
     c = conn.cursor()
 
-    try:
-        c.execute('''CREATE TABLE auth (_id integer primary key autoincrement, mail text not null unique, psw text not null)''')
-    except sqlite3.OperationalError:
-        logger.exception("ERROR: 'Base already exist'")
-        exit(1)
+    c.execute('''CREATE TABLE auth (_id integer primary key autoincrement, 
+                                    mail text not null unique, psw text not null)''')
 
     conn.commit()
     conn.close()

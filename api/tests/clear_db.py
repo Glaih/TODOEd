@@ -1,17 +1,14 @@
 import sqlite3
 import logging
+from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
 
 
 def clear_db(path):
-    try:
-        conn = sqlite3.connect(path)
-    except sqlite3.OperationalError:
-        logger.exception(f'DB_ERROR: DB {path=} does not exist.')
-        quit()
 
+    conn = sqlite3.connect(path)
     c = conn.cursor()
 
     c.execute('''DELETE FROM auth''')
@@ -19,4 +16,8 @@ def clear_db(path):
 
     conn.commit()
     conn.close()
+
+
+if __name__ == '__main__':
+    clear_db(str(input('Enter base name: ')))
 
