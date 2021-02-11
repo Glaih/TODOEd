@@ -6,3 +6,4 @@ venv
 .git
 .pytest_cache
 *.log
+*.http
