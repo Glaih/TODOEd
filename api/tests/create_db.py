@@ -21,7 +21,7 @@ def clear_db_name(input_name):
 def create_base(name):
     path = DB_DIR / clear_db_name(name)
 
-    if Path(path).is_file():
+    if path.is_file():
         logger.error("ERROR: 'Database already exist'")
         return {'errors': {'database': 'Database already exist'}}, 400
 

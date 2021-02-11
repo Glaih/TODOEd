@@ -92,7 +92,7 @@ class TestRegistrationErrors(TestBase):
         self.assertEqual(data["json_key_error"], "wrong keys")
 
 
-@unittest.skipIf(Path(TEST_DB_PATH).is_file() == 0, f'DB_ERROR: DB does not exist.')
+@unittest.skipIf(TEST_DB_PATH.is_file() == 0, f'DB_ERROR: DB does not exist.')
 @mock.patch('func.registration.DB_PATH', TEST_DB_PATH)
 class TestRegistrationDb(TestBase):
 

@@ -29,7 +29,7 @@ def write_in_usr_db(email, psw):
     values = (email.strip(), password_hash(psw))
     user_get = validation_response(email.strip(), psw)
     if user_get is True:
-        if Path(DB_PATH).is_file():
+        if DB_PATH.is_file():
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
 
