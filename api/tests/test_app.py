@@ -77,12 +77,11 @@ class TestRegistrationErrors(TestBase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data["errors"], {'email': 'Incorrect email'})
 
-    def test_not_json(self):
-        request_json = 32
+    def test_type_error(self):
+        request_json = 21
         response, data = self.request(request_json)
-
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["type_error"], "data must be in json format")
+        self.assertEqual(next(iter(data)), "type_error")
 
     def test_wrong_keys(self):
         request_json = {"passworddd": "qwerty78"}

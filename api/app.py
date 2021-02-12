@@ -22,9 +22,9 @@ def registration():
     try:
         return write_in_usr_db(auth_request['email'], auth_request['password'])
 
-    except TypeError:
-        logger.exception("TYPE_ERROR: 'data must be in json format'")
-        return {'type_error': 'data must be in json format'}, 400
+    except TypeError as err:
+        logger.exception(f"TYPE_ERROR: {err}")
+        return {'type_error': f'{err}'}, 400
 
     except KeyError:
         logger.exception("JSON_KEY_ERROR: 'wrong keys'")
