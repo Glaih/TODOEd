@@ -20,7 +20,8 @@ def registration():
     auth_request = request.get_json()
 
     try:
-        return write_in_usr_db(auth_request['email'], auth_request['password'])
+        auth_request['email']
+        auth_request['password']
 
     except TypeError as err:
         logger.exception(f"TYPE_ERROR: {err}")
@@ -29,6 +30,9 @@ def registration():
     except KeyError:
         logger.exception("JSON_KEY_ERROR: 'wrong keys'")
         return {'json_key_error': 'wrong keys'}, 400
+
+    else:
+        return write_in_usr_db(auth_request['email'], auth_request['password'])
 
 
 if __name__ == '__main__':
