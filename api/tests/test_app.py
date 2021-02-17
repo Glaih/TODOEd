@@ -12,8 +12,8 @@ from tests.clear_db import clear_db
 
 logger = logging.getLogger(__name__)
 
-TEST_DB_PATH = Path(__file__, '../../db/test_auth.db').resolve()
-
+TEST_DB_PATH = Path(__file__, '../../db/test_users.db').resolve()
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 class TestBase(unittest.TestCase):
     @staticmethod
