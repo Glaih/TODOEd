@@ -1,9 +1,7 @@
 import re
-import logging
 import bcrypt
 from flask_sqlalchemy import SQLAlchemy
 
-logger = logging.getLogger(__name__)
 
 db = SQLAlchemy()
 
