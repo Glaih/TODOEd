@@ -14,11 +14,11 @@ class User(db.Model):
     def create(self):
         self._validation_response()
         password_hashed = bcrypt.hashpw(self.password.encode(), bcrypt.gensalt())
-        db.session.add(User(mail=self.mail, password=password_hashed))
+        db.session.add(User(mail=self.mail.strip(), password=password_hashed))
         db.session.commit()
 
     def _validate_mail(self):
-        return bool(re.search(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$", self.mail))
+        return bool(re.search(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$", self.mail.strip()))
 
     def _validate_password(self):
         return bool(8 <= len(self.password) <= 30)
@@ -26,7 +26,7 @@ class User(db.Model):
     def _validation_response(self):
         errors = {}
 
-        if User.query.filter_by(mail=self.mail).first() is not None:
+        if User.query.filter_by(mail=self.mail.strip()).first() is not None:
             errors['email'] = 'User already exists'
 
         if self._validate_mail() is False:
@@ -48,5 +48,5 @@ class ValidationError(Exception):
         self.errors = errors
 
     def return_error(self):
-        return {'Errors': self.errors}
+        return {'errors': self.errors}
 

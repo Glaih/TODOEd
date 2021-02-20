@@ -1,19 +1,18 @@
 import unittest
-from unittest import mock
-from pathlib import Path
 from flask import url_for
 import logging
 import sqlite3
 from bcrypt import checkpw
 
+
 from app import app
 from tests.clear_db import clear_db
-
+from config import TestConfig, TEST_DB_PATH
 
 logger = logging.getLogger(__name__)
 
-TEST_DB_PATH = Path(__file__, '../../db/test_users.db').resolve()
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object(TestConfig())
+
 
 class TestBase(unittest.TestCase):
     @staticmethod
@@ -32,50 +31,50 @@ class TestRegistrationErrors(TestBase):
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long',
-                                          'email': 'Incorrect email'})
+        self.assertEqual(data["errors"], {'password': 'Invalid password',
+                                          'email': 'Invalid email'})
 
     def test_no_at_mail(self):
         request_json = {"email": "test7mail.ru", "password": "qwerty432#%3fdDFG"}
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'email': 'Incorrect email'})
+        self.assertEqual(data["errors"], {'email': 'Invalid email'})
 
     def test_no_dot_mail(self):
         request_json = {"email": "test8@mail.com", "password": "1234567890123456789012345678901"}
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
+        self.assertEqual(data["errors"], {'password': 'Invalid password'})
 
     def test_password_length_zero(self):
         request_json = {"email": "test9@mail.com", "password": ""}
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'password': 'Password must be 8 - 30 symbols long'})
+        self.assertEqual(data["errors"], {'password': 'Invalid password'})
 
     def test_no_dot_no_at_mail(self):
         request_json = {"email": "test10mailcom", "password": "456789012345678901"}
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'email': 'Incorrect email'})
+        self.assertEqual(data["errors"], {'email': 'Invalid email'})
 
     def test_comma_instead_dot_mail(self):
         request_json = {"email": "test11@mail,com", "password": "112345678901"}
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'email': 'Incorrect email'})
+        self.assertEqual(data["errors"], {'email': 'Invalid email'})
 
     def test_comma_instead_at_mail(self):
         request_json = {"email": "test12,mail.com", "password": "456789012345678901"}
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'email': 'Incorrect email'})
+        self.assertEqual(data["errors"], {'email': 'Invalid email'})
 
     def test_type_error(self):
         request_json = 21
@@ -92,7 +91,6 @@ class TestRegistrationErrors(TestBase):
 
 
 @unittest.skipIf(TEST_DB_PATH.is_file() == 0, f'DB_ERROR: DB does not exist.')
-@mock.patch('func.registration.DB_PATH', TEST_DB_PATH)
 class TestRegistrationDb(TestBase):
 
     def setUp(self):
@@ -115,7 +113,7 @@ class TestRegistrationDb(TestBase):
         response, data = self.request(request_json)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(data["errors"], {'mail': 'User already exists'})
+        self.assertEqual(data["errors"], {'email': 'User already exists'})
 
     def test_startswith_space_mail(self):
         request_json = {"email": " test3@mail.ru", "password": "qwerty789012345"}
@@ -147,7 +145,7 @@ class TestRegistrationDb(TestBase):
 
         conn = sqlite3.connect(TEST_DB_PATH)
         c = conn.cursor()
-        c.execute("SELECT psw FROM auth where mail=?", mail)
+        c.execute("SELECT password FROM user where mail=?", mail)
 
         password_in_db = c.fetchone()
 

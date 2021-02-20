@@ -6,6 +6,7 @@ from func.database import ValidationError
 
 logger = logging.getLogger(__name__)
 
+
 app = create_app()
 
 
@@ -32,5 +33,5 @@ def registration():
             return error.return_error(), 400
 
 
-if __name__ == 'main':
+if __name__ == '__main__':
     app.run()
