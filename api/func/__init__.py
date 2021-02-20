@@ -3,7 +3,7 @@ from pathlib import Path
 from flask import Flask
 
 from config import BaseConfig
-from func.database import db, User, DB_PATH
+from func.database import db, User
 
 
 def create_app(test_config=None):

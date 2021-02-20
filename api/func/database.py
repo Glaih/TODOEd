@@ -1,14 +1,9 @@
 import re
 import logging
 import bcrypt
-from pathlib import Path
 from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger(__name__)
-
-DB_PATH = Path(__file__, '../../db/users.db').resolve()
-DB_DIR = Path(DB_PATH).parent
-
 
 db = SQLAlchemy()
 
@@ -19,17 +14,10 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
 
     def create(self):
-        if self._validation_response() is True:
-            password_hashed = bcrypt.hashpw(self.password.encode(), bcrypt.gensalt())
-            if User.query.filter_by(mail=self.mail).first() is None:
-                db.session.add(User(mail=self.mail, password=password_hashed))
-                db.session.commit()
-
-                return {'success': 'User has been registered'}, 200
-
-            raise UserExistsError
-
-        return self._validation_response()
+        self._validation_response()
+        password_hashed = bcrypt.hashpw(self.password.encode(), bcrypt.gensalt())
+        db.session.add(User(mail=self.mail, password=password_hashed))
+        db.session.commit()
 
     def _validate_mail(self):
         return bool(re.search(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$", self.mail))
@@ -38,15 +26,29 @@ class User(db.Model):
         return bool(8 <= len(self.password) <= 30)
 
     def _validation_response(self):
-        if self._validate_mail() and self._validate_password():
-            return True
+        errors = {}
 
-        else:
-            return self._validate_mail(), self._validate_password()
+        if User.query.filter_by(mail=self.mail).first() is not None:
+            errors['email'] = 'User already exists'
+
+        if self._validate_mail() is False:
+            errors['email'] = 'Invalid email'
+
+        if self._validate_password() is False:
+            errors['password'] = 'Invalid password'
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class UserExistsError(Exception):
     pass
 
 
+class ValidationError(Exception):
+    def __init__(self, errors):
+        self.errors = errors
+
+    def return_error(self):
+        return {'Errors': self.errors}
 

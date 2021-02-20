@@ -2,7 +2,7 @@ import logging
 from flask import request
 
 from func import create_app, User
-from func.database import UserExistsError
+from func.database import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +25,11 @@ def registration():
 
     else:
         try:
-            return User(mail=mail, password=password).create()
-        except UserExistsError:
-            logger.info(f"ERROR: 'User {mail} already exists.'")
-            return {'errors': {'mail': 'User already exists'}}, 400
-        finally:
-            counter = 0
-            errors_answer = {'errors': {}}
-            errors_tuple = {'mail'}
-            for e in User(mail=mail, password=password).create():
-                if e == True
+            User(mail=mail, password=password).create()
+            return {'success': 'User has been registered'}, 200
+        except ValidationError as error:
+            logger.exception(error)
+            return error.return_error(), 400
 
 
 if __name__ == 'main':
