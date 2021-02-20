@@ -1,19 +1,12 @@
-from flask import Flask, request
 import logging
-from pathlib import Path
+from flask import request
 
-from func.database import User
-
-logging.basicConfig(
-    format='%(asctime)s - %(name)s:%(message)s',
-    filename=Path(__file__, '../app.log').resolve(),
-    level=logging.DEBUG,
-)
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+from func import create_app, User
+from func.database import UserExistsError
 
 logger = logging.getLogger(__name__)
+
+app = create_app()
 
 
 @app.route('/api/v1/users/', methods=['POST'])
@@ -31,8 +24,18 @@ def registration():
         return {'json_key_error': 'wrong keys'}, 400
 
     else:
-        return User(mail=mail, password=password).create()
+        try:
+            return User(mail=mail, password=password).create()
+        except UserExistsError:
+            logger.info(f"ERROR: 'User {mail} already exists.'")
+            return {'errors': {'mail': 'User already exists'}}, 400
+        finally:
+            counter = 0
+            errors_answer = {'errors': {}}
+            errors_tuple = {'mail'}
+            for e in User(mail=mail, password=password).create():
+                if e == True
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == 'main':
+    app.run()
