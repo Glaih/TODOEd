@@ -1,9 +1,8 @@
 import unittest
-from flask import url_for
 import logging
 import sqlite3
+from flask import url_for
 from bcrypt import checkpw
-
 
 from app import app
 from tests.clear_db import clear_db
