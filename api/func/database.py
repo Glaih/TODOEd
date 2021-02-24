@@ -12,27 +12,27 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
 
     def create(self):
-        self._validation_response()
+        self._validate()
         password_hashed = bcrypt.hashpw(self.password.encode(), bcrypt.gensalt())
-        db.session.add(User(mail=self.mail.strip(), password=password_hashed))
+        db.session.add(User(mail=self.mail, password=password_hashed))
         db.session.commit()
 
     def _validate_mail(self):
-        return bool(re.search(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$", self.mail.strip()))
+        return bool(re.search(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$", self.mail))
 
     def _validate_password(self):
         return bool(8 <= len(self.password) <= 30)
 
-    def _validation_response(self):
+    def _validate(self):
         errors = {}
 
-        if User.query.filter_by(mail=self.mail.strip()).first() is not None:
+        if User.query.filter_by(mail=self.mail).first():
             errors['email'] = 'User already exists'
 
-        if self._validate_mail() is False:
+        if not self._validate_mail():
             errors['email'] = 'Invalid email'
 
-        if self._validate_password() is False:
+        if not self._validate_password():
             errors['password'] = 'Invalid password'
 
         if errors:
@@ -47,6 +47,6 @@ class ValidationError(Exception):
     def __init__(self, errors):
         self.errors = errors
 
-    def return_error(self):
+    def get_errors(self):
         return {'errors': self.errors}
 
