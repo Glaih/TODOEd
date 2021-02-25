@@ -3,10 +3,9 @@ from flask import request
 
 from func import create_app, User
 from func.database import ValidationError
-from config import TestConfig, BaseConfig
+
 
 logger = logging.getLogger(__name__)
-
 
 app = create_app()
 
@@ -15,7 +14,7 @@ app = create_app()
 def registration():
     auth_request = request.get_json()
     try:
-        mail = auth_request['email'].strip()
+        mail = auth_request['email']
         password = auth_request['password']
 
     except TypeError as err:
@@ -27,7 +26,7 @@ def registration():
         return {'json_key_error': 'wrong keys'}, 400
 
     try:
-        User(mail=mail, password=password).create()
+        User.create(email=mail, password=password)
         return {'success': 'User has been registered'}, 200
     except ValidationError as error:
         logger.exception(error)
