@@ -13,6 +13,7 @@ Simple TODOlist management application with auth using Flask and SQLite.
         func/ - api modules
             __init__.py - app factory
             database.py - model(flask_sqlalchemy)
+            blueprints.py - flask blueprints
     
         migrations/ - db migration(flask-migrate)
         

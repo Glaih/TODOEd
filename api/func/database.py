@@ -62,4 +62,3 @@ class ValidationError(Exception):
 
     def get_errors(self):
         return {'errors': self.errors}
-
