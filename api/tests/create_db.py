@@ -2,7 +2,7 @@ import sqlite3
 import logging
 from pathlib import Path
 
-from func.registration import DB_DIR
+from core.registration import DB_DIR
 
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ import sqlite3
 from flask import url_for
 from bcrypt import checkpw
 
-from func import create_app
+from core import create_app
 from tests.clear_db import clear_db
 from config import TEST_DB_PATH
 
@@ -17,7 +17,7 @@ class TestBase(unittest.TestCase):
     @staticmethod
     def request(json_data):
         with app.test_request_context():
-            response = app.test_client().post(url_for('registration.registration'), json=json_data)
+            response = app.test_client().post(url_for('api.registration'), json=json_data)
         data = response.get_json()
 
         return response, data

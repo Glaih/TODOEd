@@ -3,22 +3,18 @@ from pathlib import Path
 from flask import Flask
 from flask_migrate import Migrate
 
-from func.blueprints import registration_blueprint
+from core.blueprints import api_blueprint
 from config import BaseConfig, TestConfig
-from func.database import db
+from core.database import db
 
 
 def create_app(test_config=False):
     app = Flask(__name__)
 
-    if test_config is True:
-        app.config.from_object(TestConfig())
-        print('test')
-    else:
-        app.config.from_object(BaseConfig())
-        print('base')
+    config = TestConfig() if test_config else BaseConfig()
+    app.config.from_object(config)
 
-    app.register_blueprint(registration_blueprint)
+    app.register_blueprint(api_blueprint)
 
     db.init_app(app)
     migrate = Migrate(app, db)
