@@ -4,20 +4,20 @@ import sqlite3
 from flask import url_for
 from bcrypt import checkpw
 
-from app import app
+from core import create_app
 from tests.clear_db import clear_db
-from config import TestConfig, TEST_DB_PATH
+from config import TEST_DB_PATH
 
 logger = logging.getLogger(__name__)
 
-app.config.from_object(TestConfig())
+app = create_app(True)
 
 
 class TestBase(unittest.TestCase):
     @staticmethod
     def request(json_data):
         with app.test_request_context():
-            response = app.test_client().post(url_for('registration'), json=json_data)
+            response = app.test_client().post(url_for('api.registration'), json=json_data)
         data = response.get_json()
 
         return response, data

@@ -18,4 +18,3 @@ def clear_db(path):
 
 if __name__ == '__main__':
     clear_db(str(input('Enter base name: ')))
-
