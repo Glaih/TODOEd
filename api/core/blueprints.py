@@ -51,12 +51,12 @@ def login():
         logger.exception("JSON_KEY_ERROR: 'wrong keys'")
         return {'json_key_error': 'wrong keys'}, 400
 
-    if mail != "test" or password != "test":
+    if mail != "test@mail.ru" or password != "test":
         return {"msg": "Bad username or password"}, 401
 
     access_token = create_access_token(identity=mail)
     refresh_token = create_refresh_token(identity=mail)
-    return jsonify(access_token=access_token, refresh_token=refresh_token)
+    return jsonify(access_token=access_token, refresh_token=refresh_token), 200
 
 
 @api_blueprint.route('/api/v1/users/refresh', methods=["POST"])
@@ -65,13 +65,12 @@ def refresh():
     identity = get_jwt_identity()
     access_token = create_access_token(identity=identity)
     refresh_token = create_refresh_token(identity=identity)
-    return jsonify(access_token=access_token, refresh_token=refresh_token)
+    return jsonify(access_token=access_token), 200
 
 
-@api_blueprint.route('/api/v1/users/JWT_Protected', methods=['GET'])
+@api_blueprint.route('/api/v1/users/jwt_Protected', methods=['GET'])
 @jwt_required()
 def protected():
     # Access the identity of the current user with get_jwt_identity
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
-
