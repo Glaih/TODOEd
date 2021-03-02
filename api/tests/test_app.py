@@ -18,14 +18,12 @@ app = create_app(True)
 class TestBase(unittest.TestCase):
     @staticmethod
     def request(json_data, endpoint, method='post'):
-        if method == 'post':
-            with app.test_request_context():
-                response = app.test_client().post(url_for(endpoint), json=json_data)
-            data = response.get_json()
-        else:
-            with app.test_request_context():
-                response = app.test_client().get(url_for(endpoint), json=json_data)
-            data = response.get_json()
+        client = app.test_client()
+        method_func = client.post if method == 'post' else client.get
+        with app.test_request_context():
+            url = url_for(endpoint)
+            response = method_func(url, json=json_data)
+        data = response.get_json()
 
         return response, data
 
@@ -234,7 +232,7 @@ class TestJWT(TestBase):
         app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(seconds=60)
 
     def test_refresh_jwt_invalid_dict(self):
-        data = self.request(self.valid_request, self.login)[1]
+        self.request(self.valid_request, self.login)
 
         request_refresh = {'refresh_token': f'no'}
 
@@ -244,7 +242,7 @@ class TestJWT(TestBase):
         self.assertEqual({'msg': 'Not enough segments'}, refresh_data)
 
     def test_refresh_jwt_None(self):
-        data = self.request(self.valid_request, self.login)[1]
+        self.request(self.valid_request, self.login)
 
         request_refresh = None
 
@@ -307,4 +305,3 @@ class TestJWT(TestBase):
         self.assertEqual({'msg': 'Token has expired'}, access_data)
 
         app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
-
