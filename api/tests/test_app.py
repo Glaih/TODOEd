@@ -169,7 +169,12 @@ class TestJWT(TestBase):
         cls.login = 'api.login'
         cls.refresh = 'api.refresh'
         cls.protected = 'api.protected'
-        cls.valid_request = {"email": "test@mail.ru", "password": "test"}
+        cls.valid_request = {"email": "testJWT@mail.ru ", "password": 'qWeRtYoneoneone'}
+        cls.request(cls.valid_request, 'api.registration')
+
+    @classmethod
+    def tearDownClass(cls):
+        clear_db(TEST_DB_PATH)
 
     def test_login_type_error(self):
         request_json = 21
@@ -197,13 +202,21 @@ class TestJWT(TestBase):
         self.assertEqual(400, response.status_code)
         self.assertEqual({'type_error': "'NoneType' object is not subscriptable"}, data)
 
-    def test_acquire_jwt_wrong_not_user(self):
+    def test_acquire_jwt_wrong_user(self):
         request_json = {"email": "testo@mail.ru", "password": "test"}
 
         response, data = self.request(request_json, self.login)
 
         self.assertEqual(401, response.status_code)
-        self.assertEqual({"msg": "Bad username or password"}, data)
+        self.assertEqual({'errors': {'mail': 'user does not exist'}}, data)
+
+    def test_acquire_jwt_wrong_password(self):
+        request_json = {"email": "testJWT@mail.ru ", "password": 'qWeRtYoneone'}
+
+        response, data = self.request(request_json, self.login)
+
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({'errors': {'password': 'incorrect password'}}, data)
 
     def test_refresh_jwt(self):
         data = self.request(self.valid_request, self.login)[1]

@@ -1,5 +1,5 @@
 import re
-import bcrypt
+from bcrypt import hashpw, gensalt, checkpw
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -14,7 +14,7 @@ class User(db.Model):
     @classmethod
     def create(cls, email, password):
         email = email.strip()
-        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        hashed_password = hashpw(password.encode(), gensalt())
         user = cls(mail=email, password=hashed_password)
         return user.save(email, password)
 
@@ -27,6 +27,27 @@ class User(db.Model):
 
         db.session.commit()
         return self
+
+    @classmethod
+    def verify_user(cls, email, password):
+        email = email.strip()
+        user = cls.query.filter_by(mail=email).first()
+        cls._verificate_user(email, password, user)
+        return True
+
+    @staticmethod
+    def _verificate_user(email, password, user_object):
+        errors = {}
+
+        if not User.query.filter_by(mail=email).first():
+            errors['mail'] = 'user does not exist'
+
+        else:
+            if not checkpw(password.encode(), user_object.password):
+                errors['password'] = 'incorrect password'
+
+        if errors:
+            raise VerificationError(errors)
 
     @staticmethod
     def _validate_mail(mail):
@@ -52,11 +73,15 @@ class User(db.Model):
             raise ValidationError(errors)
 
 
-class UserExistsError(Exception):
-    pass
-
-
 class ValidationError(Exception):
+    def __init__(self, errors):
+        self.errors = errors
+
+    def get_errors(self):
+        return {'errors': self.errors}
+
+
+class VerificationError(Exception):
     def __init__(self, errors):
         self.errors = errors
 

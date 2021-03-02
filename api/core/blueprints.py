@@ -3,7 +3,7 @@ from flask import request, Blueprint
 from flask_jwt_extended import create_access_token, create_refresh_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from core.database import ValidationError, User
+from core.database import ValidationError, VerificationError, User
 
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 api_blueprint = Blueprint('api', __name__)
 
 
-@api_blueprint.route('/api/v1/users/', methods=['POST'])
+@api_blueprint.route('/api/v1/users/registration/', methods=['POST'])
 def registration():
     auth_request = request.get_json()
 
@@ -30,6 +30,13 @@ def registration():
         return check_errors(auth_request)
 
 
+@api_blueprint.route('/api/v1/users/exist/', methods=['POST'])
+def exist():
+    auth_request = request.get_json()
+    mail, password = check_errors(auth_request)[1:3]
+    return User.verify(mail)
+
+
 @api_blueprint.route('/api/v1/users/login', methods=['POST'])
 def login():
     auth_request = request.get_json()
@@ -37,8 +44,11 @@ def login():
     if not check_errors(auth_request)[0]:
         mail, password = check_errors(auth_request)[1:3]
 
-        if mail != "test@mail.ru" or password != "test":
-            return {"msg": "Bad username or password"}, 401
+        try:
+            User.verify_user(mail, password)
+        except VerificationError as error:
+            logger.exception(error)
+            return error.get_errors(), 401
 
         access_token = create_access_token(identity=mail)
         refresh_token = create_refresh_token(identity=mail)
