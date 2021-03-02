@@ -3,6 +3,8 @@ import logging
 import sqlite3
 from flask import url_for
 from bcrypt import checkpw
+from datetime import timedelta
+from time import sleep
 
 from core import create_app
 from tests.clear_db import clear_db
@@ -169,6 +171,7 @@ class TestJWT(TestBase):
         cls.login = 'api.login'
         cls.refresh = 'api.refresh'
         cls.protected = 'api.protected'
+        cls.valid_request = {"email": "test@mail.ru", "password": "test"}
 
     def test_login_type_error(self):
         request_json = 21
@@ -185,17 +188,27 @@ class TestJWT(TestBase):
         self.assertEqual("wrong keys", data["json_key_error"])
 
     def test_acquire_jwt(self):
-        request_json = {"email": "test@mail.ru", "password": "test"}
-
-        response, data = self.request(request_json, self.login)
+        response, data = self.request(self.valid_request, self.login)
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(['access_token', 'refresh_token'], list(data.keys()))
 
-    def test_refresh_jwt(self):
-        request_jwt = {"email": "test@mail.ru", "password": "test"}
+    def test_acquire_jwt_request_none(self):
+        response, data = self.request(None, self.login)
 
-        data = self.request(request_jwt, self.login)[1]
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'type_error': "'NoneType' object is not subscriptable"}, data)
+
+    def test_acquire_jwt_wrong_not_user(self):
+        request_json = {"email": "testo@mail.ru", "password": "test"}
+
+        response, data = self.request(request_json, self.login)
+
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({"msg": "Bad username or password"}, data)
+
+    def test_refresh_jwt(self):
+        data = self.request(self.valid_request, self.login)[1]
 
         request_refresh = {'refresh_token': f'{data["refresh_token"]}'}
 
@@ -204,14 +217,94 @@ class TestJWT(TestBase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(['access_token'], list(refresh_data.keys()))
 
-    def test_protected_route(self):
-        request_jwt = {"email": "test@mail.ru", "password": "test"}
+    def test_refresh_jwt_expired(self):
+        app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(milliseconds=1)
 
-        data = self.request(request_jwt, self.login)[1]
+        data = self.request(self.valid_request, self.login)[1]
+
+        sleep(1)
+
+        request_refresh = {'refresh_token': f'{data["refresh_token"]}'}
+
+        response, refresh_data = self.request(request_refresh, self.refresh)
+
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({'msg': 'Token has expired'}, refresh_data)
+
+        app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(seconds=60)
+
+    def test_refresh_jwt_invalid_dict(self):
+        data = self.request(self.valid_request, self.login)[1]
+
+        request_refresh = {'refresh_token': f'no'}
+
+        response, refresh_data = self.request(request_refresh, self.refresh)
+
+        self.assertEqual(422, response.status_code)
+        self.assertEqual({'msg': 'Not enough segments'}, refresh_data)
+
+    def test_refresh_jwt_None(self):
+        data = self.request(self.valid_request, self.login)[1]
+
+        request_refresh = None
+
+        response, refresh_data = self.request(request_refresh, self.refresh)
+
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({'msg': 'Invalid content-type. Must be application/json.'}, refresh_data)
+
+    def test_protected_route(self):
+        data = self.request(self.valid_request, self.login)[1]
 
         request_access = {'access_token': f'{data["access_token"]}'}
 
         response, access_data = self.request(request_access, self.protected, 'get')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual({'logged_in_as': f'{request_jwt["email"]}'}, access_data)
+        self.assertEqual({'logged_in_as': f'{self.valid_request["email"]}'}, access_data)
+
+    def test_protected_route_invalid_jwt_dict(self):
+
+        request_access = {'access_token': 'no'}
+
+        response, access_data = self.request(request_access, self.protected, 'get')
+
+        self.assertEqual(422, response.status_code)
+        self.assertEqual({'msg': 'Not enough segments'}, access_data)
+
+    def test_protected_route_invalid_jwt_none(self):
+
+        request_access = None
+
+        response, access_data = self.request(request_access, self.protected, 'get')
+
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({'msg': 'Invalid content-type. Must be application/json.'}, access_data)
+
+    def test_protected_route_wrong_jwt(self):
+        request_access = {'access_token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYxNDY3'
+                                          'NTkyNywianRpIjoiNmExOWVmNDYtNDI0NC00NWVkLTk4YTQtYzM1MDU1OGJmY2FhIiwibmJmIj'
+                                          'oxNjE0Njc1OTI3LCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoidGVzdEBtYWlsLnJ1IiwiZXhwIjox'
+                                          'NjE0NzYyMzI3fQ.9oWgnQQQnuY5iAlTPqkuAINqw9II5BMxbEAUucYHLTc'}
+
+        response, access_data = self.request(request_access, self.protected, 'get')
+
+        self.assertEqual(422, response.status_code)
+        self.assertEqual({'msg': 'Signature verification failed'}, access_data)
+
+    def test_protected_route_expired_jwt(self):
+        app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(milliseconds=1)
+
+        data = self.request(self.valid_request, self.login)[1]
+
+        sleep(1)
+
+        request_access = {'access_token': f'{data["access_token"]}'}
+
+        response, access_data = self.request(request_access, self.protected, 'get')
+
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({'msg': 'Token has expired'}, access_data)
+
+        app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+
