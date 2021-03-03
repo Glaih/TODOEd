@@ -89,4 +89,3 @@ class ValidationErrors(BaseErrors):
 
 class PermissionErrors(BaseErrors):
     status_code = 403
-
