@@ -40,14 +40,14 @@ class User(db.Model):
         errors = {}
 
         if not User.query.filter_by(mail=email).first():
-            errors['mail'] = 'user does not exist'
+            errors['email'] = 'user does not exist'
 
         else:
             if not checkpw(password.encode(), user_object.password):
                 errors['password'] = 'incorrect password'  # TODO Implement some CAPTCHAlike verification.
 
         if errors:
-            raise VerificationError(errors)
+            raise PermissionErrors(errors)
 
     @staticmethod
     def _validate_mail(mail):
@@ -70,10 +70,12 @@ class User(db.Model):
             errors['password'] = 'Invalid password'
 
         if errors:
-            raise ValidationError(errors)
+            raise ValidationErrors(errors)
 
 
-class ValidationError(Exception):
+class BaseErrors(Exception):
+    status_code = 400
+
     def __init__(self, errors):
         self.errors = errors
 
@@ -81,9 +83,10 @@ class ValidationError(Exception):
         return {'errors': self.errors}
 
 
-class VerificationError(Exception):
-    def __init__(self, errors):
-        self.errors = errors
+class ValidationErrors(BaseErrors):
+    pass
 
-    def get_errors(self):
-        return {'errors': self.errors}
+
+class PermissionErrors(BaseErrors):
+    status_code = 403
+

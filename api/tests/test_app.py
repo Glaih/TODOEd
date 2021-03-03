@@ -85,15 +85,17 @@ class TestRegistrationErrors(TestBase):
         request_json = 21
         response, data = self.request(request_json, self.endpoint)
 
+        print(data)
+
         self.assertEqual(400, response.status_code)
-        self.assertTrue('type_error' in data)
+        self.assertEqual({'type_error': "'int' object is not subscriptable"}, data["errors"])
 
     def test_wrong_keys(self):
         request_json = {"passworddd": "qwerty78"}
         response, data = self.request(request_json, self.endpoint)
 
         self.assertEqual(400, response.status_code)
-        self.assertEqual("wrong keys", data["json_key_error"])
+        self.assertEqual({'json_key_error': 'wrong keys'}, data["errors"])
 
 
 @unittest.skipIf(TEST_DB_PATH.is_file() == 0, f'DB_ERROR: DB does not exist.')
@@ -181,14 +183,14 @@ class TestJWT(TestBase):
         response, data = self.request(request_json, self.login)
 
         self.assertEqual(400, response.status_code)
-        self.assertTrue('type_error' in data)
+        self.assertEqual({'type_error': "'int' object is not subscriptable"}, data["errors"])
 
     def test_login_wrong_keys(self):
         request_json = {"passworddd": "qwerty78"}
         response, data = self.request(request_json, self.login)
 
         self.assertEqual(400, response.status_code)
-        self.assertEqual("wrong keys", data["json_key_error"])
+        self.assertEqual({'json_key_error': 'wrong keys'}, data["errors"])
 
     def test_acquire_jwt(self):
         response, data = self.request(self.valid_request, self.login)
@@ -200,22 +202,22 @@ class TestJWT(TestBase):
         response, data = self.request(None, self.login)
 
         self.assertEqual(400, response.status_code)
-        self.assertEqual({'type_error': "'NoneType' object is not subscriptable"}, data)
+        self.assertEqual({'type_error': "'NoneType' object is not subscriptable"}, data['errors'])
 
     def test_acquire_jwt_wrong_user(self):
         request_json = {"email": "testo@mail.ru", "password": "test"}
 
         response, data = self.request(request_json, self.login)
 
-        self.assertEqual(401, response.status_code)
-        self.assertEqual({'errors': {'mail': 'user does not exist'}}, data)
+        self.assertEqual(403, response.status_code)
+        self.assertEqual({'errors': {'email': 'user does not exist'}}, data)
 
     def test_acquire_jwt_wrong_password(self):
         request_json = {"email": "testJWT@mail.ru ", "password": 'qWeRtYoneone'}
 
         response, data = self.request(request_json, self.login)
 
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(403, response.status_code)
         self.assertEqual({'errors': {'password': 'incorrect password'}}, data)
 
     def test_refresh_jwt(self):

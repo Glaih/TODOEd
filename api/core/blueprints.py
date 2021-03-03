@@ -1,9 +1,9 @@
 import logging
-from flask import request, Blueprint
+from flask import request, Blueprint, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from core.database import ValidationError, VerificationError, User
+from core.database import BaseErrors, ValidationErrors, User
 
 
 logger = logging.getLogger(__name__)
@@ -16,37 +16,19 @@ api_blueprint = Blueprint('api', __name__)
 def registration():
     auth_request = request.get_json()
 
-    errors = check_errors(auth_request)
+    mail, password = get_user_data_from_request(auth_request)
 
-    if errors:
-        return errors
-
-    mail, password = auth_request.values()
-
-    try:
-        User.create(email=mail, password=password)
-        return {'success': 'User has been registered'}, 200
-    except ValidationError as error:
-        logger.exception(error)
-        return error.get_errors(), 400
+    User.create(email=mail, password=password)
+    return {'success': 'User has been registered'}, 200
 
 
 @api_blueprint.route('/api/v1/users/login', methods=['POST'])
 def login():
     auth_request = request.get_json()
 
-    errors = check_errors(auth_request)
+    mail, password = get_user_data_from_request(auth_request)
 
-    if errors:
-        return errors
-
-    mail, password = auth_request.values()
-
-    try:
-        User.verify_user(mail, password)
-    except VerificationError as error:
-        logger.exception(error)
-        return error.get_errors(), 401
+    User.verify_user(mail, password)
 
     access_token = create_access_token(identity=mail)
     refresh_token = create_refresh_token(identity=mail)
@@ -68,16 +50,22 @@ def protected():
     return {'logged_in_as': current_user}, 200
 
 
-def check_errors(json_request):
+@api_blueprint.errorhandler(BaseErrors)
+def handle_bad_verification(e):
+    logger.exception(e)
+    return e.get_errors(), e.status_code
+
+
+def get_user_data_from_request(json_request):
     try:
         mail = json_request['email']
         password = json_request['password']
-        return False
+        return mail, password
 
     except TypeError as err:
         logger.exception(f"TYPE_ERROR: {err}")
-        return {'type_error': f'{err}'}, 400
+        raise ValidationErrors({'type_error': f'{err}'})
 
     except KeyError:
         logger.exception("JSON_KEY_ERROR: 'wrong keys'")
-        return {'json_key_error': 'wrong keys'}, 400
+        raise ValidationErrors({'json_key_error': 'wrong keys'})
