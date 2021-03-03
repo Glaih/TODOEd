@@ -219,7 +219,7 @@ class TestJWT(TestBase):
         self.assertEqual({'errors': {'password': 'incorrect password'}}, data)
 
     def test_refresh_jwt(self):
-        data = self.request(self.valid_request, self.login)[1]
+        _, data = self.request(self.valid_request, self.login)
 
         request_refresh = {'refresh_token': data["refresh_token"]}
 
@@ -231,7 +231,7 @@ class TestJWT(TestBase):
     def test_refresh_jwt_expired(self):
         app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(milliseconds=1)
 
-        data = self.request(self.valid_request, self.login)[1]
+        _, data = self.request(self.valid_request, self.login)
 
         sleep(1)
 
@@ -265,7 +265,7 @@ class TestJWT(TestBase):
         self.assertEqual({'msg': 'Invalid content-type. Must be application/json.'}, refresh_data)
 
     def test_protected_route(self):
-        data = self.request(self.valid_request, self.login)[1]
+        _, data = self.request(self.valid_request, self.login)
 
         request_access = {'access_token': data["access_token"]}
 
