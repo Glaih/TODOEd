@@ -16,46 +16,41 @@ api_blueprint = Blueprint('api', __name__)
 def registration():
     auth_request = request.get_json()
 
-    if not check_errors(auth_request)[0]:
-        mail, password = check_errors(auth_request)[1:3]
+    errors = check_errors(auth_request)
 
-        try:
-            User.create(email=mail, password=password)
-            return {'success': 'User has been registered'}, 200
-        except ValidationError as error:
-            logger.exception(error)
-            return error.get_errors(), 400
+    if errors:
+        return errors
 
-    else:
-        return check_errors(auth_request)
+    mail, password = auth_request.values()
 
-
-@api_blueprint.route('/api/v1/users/exist/', methods=['POST'])
-def exist():
-    auth_request = request.get_json()
-    mail, password = check_errors(auth_request)[1:3]
-    return User.verify(mail)
+    try:
+        User.create(email=mail, password=password)
+        return {'success': 'User has been registered'}, 200
+    except ValidationError as error:
+        logger.exception(error)
+        return error.get_errors(), 400
 
 
 @api_blueprint.route('/api/v1/users/login', methods=['POST'])
 def login():
     auth_request = request.get_json()
 
-    if not check_errors(auth_request)[0]:
-        mail, password = check_errors(auth_request)[1:3]
+    errors = check_errors(auth_request)
 
-        try:
-            User.verify_user(mail, password)
-        except VerificationError as error:
-            logger.exception(error)
-            return error.get_errors(), 401
+    if errors:
+        return errors
 
-        access_token = create_access_token(identity=mail)
-        refresh_token = create_refresh_token(identity=mail)
-        return {'access_token': access_token, 'refresh_token': refresh_token}, 200
+    mail, password = auth_request.values()
 
-    else:
-        return check_errors(auth_request)
+    try:
+        User.verify_user(mail, password)
+    except VerificationError as error:
+        logger.exception(error)
+        return error.get_errors(), 401
+
+    access_token = create_access_token(identity=mail)
+    refresh_token = create_refresh_token(identity=mail)
+    return {'access_token': access_token, 'refresh_token': refresh_token}, 200
 
 
 @api_blueprint.route('/api/v1/users/refresh', methods=["POST"])
@@ -73,11 +68,11 @@ def protected():
     return {'logged_in_as': current_user}, 200
 
 
-def check_errors(json):
+def check_errors(json_request):
     try:
-        mail = json['email']
-        password = json['password']
-        return False, mail, password
+        mail = json_request['email']
+        password = json_request['password']
+        return False
 
     except TypeError as err:
         logger.exception(f"TYPE_ERROR: {err}")

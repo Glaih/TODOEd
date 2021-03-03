@@ -221,7 +221,7 @@ class TestJWT(TestBase):
     def test_refresh_jwt(self):
         data = self.request(self.valid_request, self.login)[1]
 
-        request_refresh = {'refresh_token': f'{data["refresh_token"]}'}
+        request_refresh = {'refresh_token': data["refresh_token"]}
 
         response, refresh_data = self.request(request_refresh, self.refresh)
 
@@ -235,7 +235,7 @@ class TestJWT(TestBase):
 
         sleep(1)
 
-        request_refresh = {'refresh_token': f'{data["refresh_token"]}'}
+        request_refresh = {'refresh_token': data["refresh_token"]}
 
         response, refresh_data = self.request(request_refresh, self.refresh)
 
@@ -267,7 +267,7 @@ class TestJWT(TestBase):
     def test_protected_route(self):
         data = self.request(self.valid_request, self.login)[1]
 
-        request_access = {'access_token': f'{data["access_token"]}'}
+        request_access = {'access_token': data["access_token"]}
 
         response, access_data = self.request(request_access, self.protected, 'get')
 
@@ -306,11 +306,11 @@ class TestJWT(TestBase):
     def test_protected_route_expired_jwt(self):
         app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(milliseconds=1)
 
-        data = self.request(self.valid_request, self.login)[1]
+        _, data = self.request(self.valid_request, self.login)
 
         sleep(1)
 
-        request_access = {'access_token': f'{data["access_token"]}'}
+        request_access = {'access_token': data["access_token"]}
 
         response, access_data = self.request(request_access, self.protected, 'get')
 
