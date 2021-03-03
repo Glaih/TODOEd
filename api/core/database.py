@@ -23,7 +23,7 @@ class User(db.Model):
         if self._id is None:
             db.session.add(self)
         else:
-            pass  # TBA change user email/password
+            pass  # TODO add code for changing user email/password.
 
         db.session.commit()
         return self
@@ -44,7 +44,7 @@ class User(db.Model):
 
         else:
             if not checkpw(password.encode(), user_object.password):
-                errors['password'] = 'incorrect password'
+                errors['password'] = 'incorrect password'  # TODO Implement some CAPTCHAlike verification.
 
         if errors:
             raise VerificationError(errors)
