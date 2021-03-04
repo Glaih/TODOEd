@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from flask import Flask
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 
 from core.blueprints import api_blueprint
 from config import BaseConfig, TestConfig
@@ -15,6 +16,9 @@ def create_app(test_config=False):
     app.config.from_object(config)
 
     app.register_blueprint(api_blueprint)
+
+    jwt = JWTManager()
+    jwt.init_app(app)
 
     db.init_app(app)
     migrate = Migrate(app, db)

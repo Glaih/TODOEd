@@ -26,4 +26,5 @@ Simple TODOlist management application with auth using Flask and SQLite.
             create_db.py - module for creating db with specifyed name
             test_app.py - autotests
 
-        
+
+For app to work properly, environment variables ['Secret'] for SECRET_KEY and ['JWT_SECRET'] for JWT_SECRET_KEY must be set.
