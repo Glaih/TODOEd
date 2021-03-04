@@ -10,6 +10,7 @@ class User(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
     mail = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    VALID_MAIL = re.compile(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$")
 
     @classmethod
     def create(cls, email, password):
@@ -33,22 +34,21 @@ class User(db.Model):
         email = email.strip()
         user = cls.query.filter_by(mail=email).first()
 
-        if not User.query.filter_by(mail=email).first():
+        if not user:
             raise PermissionErrors({'email': 'user does not exist'})
         if not checkpw(password.encode(), user.password):
             raise PermissionErrors({'password': 'incorrect password'})
 
-    @staticmethod
-    def _validate(email, password):
+    def _validate(self, email, password):
         errors = {}
 
         if User.query.filter_by(mail=email).first():
             raise ValidationErrors({'email': 'User already exists'})
 
-        if not bool(re.search(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$", email)):
+        if not self.VALID_MAIL.search(email):
             errors['email'] = 'Invalid email'
 
-        if not bool(8 <= len(password) <= 30):
+        if not 8 <= len(password) <= 30:
             errors['password'] = 'Invalid password'
 
         if errors:
