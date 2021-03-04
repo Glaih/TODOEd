@@ -85,8 +85,6 @@ class TestRegistrationErrors(TestBase):
         request_json = 21
         response, data = self.request(request_json, self.endpoint)
 
-        print(data)
-
         self.assertEqual(400, response.status_code)
         self.assertEqual({'type_error': "'int' object is not subscriptable"}, data["errors"])
 
