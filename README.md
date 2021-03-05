@@ -27,4 +27,4 @@ Simple TODOlist management application with auth using Flask and SQLite.
             test_app.py - autotests
 
 
-For app to work properly, environment variables ['Secret'] for SECRET_KEY and ['JWT_SECRET'] for JWT_SECRET_KEY must be set.
+For app to work properly, environment variables ['SECRET'] for SECRET_KEY and ['JWT_SECRET'] for JWT_SECRET_KEY must be set.
