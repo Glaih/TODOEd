@@ -1,20 +1,16 @@
-import sqlite3
-import logging
+import psycopg2
+from contextlib import closing
+from config import DB_PASSWORD, DB_LOGIN, DB_HOST
 
 
-logger = logging.getLogger(__name__)
-
-
-def clear_db(path):
-
-    conn = sqlite3.connect(path)
-    c = conn.cursor()
-
-    c.execute('''DELETE FROM user''')
-
-    conn.commit()
-    conn.close()
+def clear_db(db):
+    with closing(psycopg2.connect(dbname=db, user=DB_LOGIN,
+                                  password=DB_PASSWORD, host=DB_HOST)) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("TRUNCATE users")
+            cursor.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1")
+            conn.commit()
 
 
 if __name__ == '__main__':
-    clear_db(str(input('Enter base name: ')))
+    clear_db('users')

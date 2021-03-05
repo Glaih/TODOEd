@@ -1,40 +1,20 @@
-import sqlite3
-import logging
-from pathlib import Path
-
-from core.registration import DB_DIR
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from config import DB_PASSWORD, DB_LOGIN, DB_HOST
 
 
-logger = logging.getLogger(__name__)
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_LOGIN}:{DB_PASSWORD}@{DB_HOST}/test_users'
+db = SQLAlchemy(app)
 
 
-def clear_db_name(input_name):
-    input_name = input_name.replace('/', '')
-    input_name = input_name.replace('\\', '')
-
-    if input_name.endswith('.db'):
-        return input_name
-    else:
-        return f'{input_name}.db'
-
-
-def create_base(name):
-    path = DB_DIR / clear_db_name(name)
-
-    if path.is_file():
-        logger.error("ERROR: 'Database already exist'")
-        return {'errors': {'database': 'Database already exist'}}, 400
-
-    conn = sqlite3.connect(path)
-    c = conn.cursor()
-
-    c.execute('''CREATE TABLE auth (_id integer primary key autoincrement, 
-                                    mail text not null unique, psw text not null)''')
-
-    conn.commit()
-    conn.close()
-    exit(0)
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    mail = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
 
 
 if __name__ == '__main__':
-    create_base(str(input('Enter base name: ')))
+
+    db.create_all()

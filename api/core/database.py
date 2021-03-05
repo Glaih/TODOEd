@@ -7,21 +7,23 @@ db = SQLAlchemy()
 
 
 class User(db.Model):
-    _id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
     mail = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    is_active = db.Column(db.Boolean, default=False, nullable=False)
     VALID_MAIL = re.compile(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$")
 
     @classmethod
     def create(cls, email, password):
         email = email.strip()
         hashed_password = hashpw(password.encode(), gensalt())
-        user = cls(mail=email, password=hashed_password)
+        user = cls(mail=email, password=hashed_password.decode())
         return user.save(email, password)
 
     def save(self, email, raw_password):
         self._validate(email, raw_password)
-        if self._id is None:
+        if self.id is None:
             db.session.add(self)
         else:
             pass
@@ -36,8 +38,10 @@ class User(db.Model):
 
         if not user:
             raise PermissionErrors({'email': 'user does not exist'})
-        if not checkpw(password.encode(), user.password):
+        if not checkpw(password.encode(), user.password.encode()):
             raise PermissionErrors({'password': 'incorrect password'})
+
+        return user.id
 
     def _validate(self, email, password):
         errors = {}
@@ -71,3 +75,7 @@ class ValidationErrors(BaseErrors):
 
 class PermissionErrors(BaseErrors):
     status_code = 403
+
+
+if __name__ == '__main__':
+    db.create_all()

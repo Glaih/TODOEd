@@ -1,5 +1,5 @@
 import logging
-from flask import request, Blueprint, jsonify
+from flask import request, Blueprint
 from flask_jwt_extended import create_access_token, create_refresh_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -28,10 +28,10 @@ def login():
 
     mail, password = get_user_data_from_request(auth_request)
 
-    User.verify_user(mail, password)
+    user_id = User.verify_user(mail, password)
 
-    access_token = create_access_token(identity=mail)
-    refresh_token = create_refresh_token(identity=mail)
+    access_token = create_access_token(identity=user_id)
+    refresh_token = create_refresh_token(identity=user_id)
     return {'access_token': access_token, 'refresh_token': refresh_token}, 200
 
 

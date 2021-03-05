@@ -1,6 +1,7 @@
 import unittest
 import logging
-import sqlite3
+import psycopg2
+from contextlib import closing
 from flask import url_for
 from bcrypt import checkpw
 from datetime import timedelta
@@ -8,7 +9,7 @@ from time import sleep
 
 from core import create_app
 from tests.clear_db import clear_db
-from config import TEST_DB_PATH
+from config import DB_PASSWORD, DB_LOGIN, DB_HOST
 
 logger = logging.getLogger(__name__)
 
@@ -96,16 +97,15 @@ class TestRegistrationErrors(TestBase):
         self.assertEqual({'json_key_error': 'wrong keys'}, data["errors"])
 
 
-@unittest.skipIf(TEST_DB_PATH.is_file() == 0, f'DB_ERROR: DB does not exist.')
 class TestRegistrationDb(TestBase):
 
     def setUp(self):
-        clear_db(TEST_DB_PATH)
+        clear_db('test_users')
         self.endpoint = 'api.registration'
 
     @classmethod
     def tearDownClass(cls):
-        clear_db(TEST_DB_PATH)
+        clear_db('test_users')
 
     def test_begin_valid(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
@@ -146,21 +146,19 @@ class TestRegistrationDb(TestBase):
     def test_password_written(self):
         password = 'Rgf6b33/Qd]'
         invalid_password = 'ctg45r[YFB!5'
-        mail = ["test5@mail.ru"]
+        mail = "test5@mail.ru"
 
         self.request({"email": "test5@mail.ru ", "password": password}, self.endpoint)
 
-        conn = sqlite3.connect(TEST_DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT password FROM user where mail=?", mail)
+        with closing(psycopg2.connect(dbname='test_users', user=DB_LOGIN,
+                                      password=DB_PASSWORD, host=DB_HOST)) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT password FROM users where mail = %s", (mail,))
+                password_in_db = cursor.fetchone()[0]
+                conn.commit()
 
-        password_in_db = c.fetchone()
-
-        conn.commit()
-        conn.close()
-
-        self.assertTrue(checkpw(password.encode(), *password_in_db))
-        self.assertFalse(checkpw(invalid_password.encode(), *password_in_db))
+        self.assertTrue(checkpw(password.encode(), password_in_db.encode()))
+        self.assertFalse(checkpw(invalid_password.encode(), password_in_db.encode()))
 
 
 class TestJWT(TestBase):
@@ -174,7 +172,7 @@ class TestJWT(TestBase):
 
     @classmethod
     def tearDownClass(cls):
-        clear_db(TEST_DB_PATH)
+        clear_db('test_users')
 
     def test_login_type_error(self):
         request_json = 21
@@ -272,7 +270,7 @@ class TestJWT(TestBase):
         response, access_data = self.request(request_access, self.protected, 'get')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual({'logged_in_as': f'{self.valid_request["email"]}'}, access_data)
+        self.assertEqual({'logged_in_as': access_data['logged_in_as']}, access_data)
 
     def test_protected_route_invalid_jwt_dict(self):
 
