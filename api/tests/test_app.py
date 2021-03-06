@@ -1,7 +1,5 @@
 import unittest
 import logging
-import psycopg2
-from contextlib import closing
 from flask import url_for
 from bcrypt import checkpw
 from datetime import timedelta
@@ -9,7 +7,8 @@ from time import sleep
 
 from core import create_app
 from tests.clear_db import clear_db
-from config import DB_PASSWORD, DB_LOGIN, DB_HOST
+from config import TEST_BASE_NAME
+from core.database import User
 
 logger = logging.getLogger(__name__)
 
@@ -100,12 +99,12 @@ class TestRegistrationErrors(TestBase):
 class TestRegistrationDb(TestBase):
 
     def setUp(self):
-        clear_db('test_users')
+        clear_db(TEST_BASE_NAME)
         self.endpoint = 'api.registration'
 
     @classmethod
     def tearDownClass(cls):
-        clear_db('test_users')
+        clear_db(TEST_BASE_NAME)
 
     def test_begin_valid(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
@@ -149,13 +148,8 @@ class TestRegistrationDb(TestBase):
         mail = "test5@mail.ru"
 
         self.request({"email": "test5@mail.ru ", "password": password}, self.endpoint)
-
-        with closing(psycopg2.connect(dbname='test_users', user=DB_LOGIN,
-                                      password=DB_PASSWORD, host=DB_HOST)) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT password FROM users where mail = %s", (mail,))
-                password_in_db = cursor.fetchone()[0]
-                conn.commit()
+        with app.app_context():
+            password_in_db = User._get_password(mail)
 
         self.assertTrue(checkpw(password.encode(), password_in_db.encode()))
         self.assertFalse(checkpw(invalid_password.encode(), password_in_db.encode()))
@@ -172,7 +166,7 @@ class TestJWT(TestBase):
 
     @classmethod
     def tearDownClass(cls):
-        clear_db('test_users')
+        clear_db(TEST_BASE_NAME)
 
     def test_login_type_error(self):
         request_json = 21

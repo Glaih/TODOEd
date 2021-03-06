@@ -11,3 +11,5 @@ venv
 generatepsw.py
 crud_db.py
 Интересности.py
+notprod/create_db.py
+notprod

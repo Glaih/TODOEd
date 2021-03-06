@@ -5,10 +5,12 @@ from datetime import timedelta
 DB_PASSWORD = environ['DB_PASSWORD']
 DB_LOGIN = environ['DB_LOGIN']
 DB_HOST = environ['DB_HOST']
+BASE_NAME = 'todo'
+TEST_BASE_NAME = 'test_todo'
 
 
 class BaseConfig:
-    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_LOGIN}:{DB_PASSWORD}@{DB_HOST}/users'
+    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_LOGIN}:{DB_PASSWORD}@{DB_HOST}/{BASE_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = environ['SECRET']
     JWT_SECRET_KEY = environ['JWT_SECRET']
@@ -19,7 +21,7 @@ class BaseConfig:
 
 
 class TestConfig:
-    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_LOGIN}:{DB_PASSWORD}@{DB_HOST}/test_users'
+    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_LOGIN}:{DB_PASSWORD}@{DB_HOST}/{TEST_BASE_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = 'test'
     JWT_SECRET_KEY = 'test'
