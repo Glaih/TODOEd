@@ -32,9 +32,9 @@ class User(db.Model):
         return self
 
     @classmethod
-    def _get_password(cls, email):
+    def get(cls, email):
         user = cls.query.filter_by(mail=email).first()
-        return user.password
+        return user
 
     @classmethod
     def verify(cls, email, password):

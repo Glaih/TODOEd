@@ -4,12 +4,7 @@ test.py
 venv
 .idea
 .git
-.pytest_cache
 *.log
 *.http
-/temp/
-generatepsw.py
-crud_db.py
-Интересности.py
-notprod/create_db.py
-notprod
+temp/
+notprod/
