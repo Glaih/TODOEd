@@ -39,7 +39,7 @@ class User(db.Model):
     @classmethod
     def verify(cls, email, password):
         email = email.strip()
-        user = cls.query.filter_by(mail=email).first()
+        user = cls.get(email)
 
         if not user:
             raise PermissionErrors({'email': 'user does not exist'})
@@ -48,13 +48,14 @@ class User(db.Model):
 
         return user.id
 
-    def _validate(self, email, password):
+    @classmethod
+    def _validate(cls, email, password):
         errors = {}
 
-        if User.query.filter_by(mail=email).first():
+        if cls.get(email):
             raise ValidationErrors({'email': 'User already exists'})
 
-        if not self.VALID_MAIL.search(email):
+        if not cls.VALID_MAIL.search(email):
             errors['email'] = 'Invalid email'
 
         if not 8 <= len(password) <= 30:
