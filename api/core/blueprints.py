@@ -28,7 +28,7 @@ def login():
 
     mail, password = get_user_data_from_request(auth_request)
 
-    user_id = User.verify_user(mail, password)
+    user_id = User.verify(mail, password)
 
     access_token = create_access_token(identity=user_id)
     refresh_token = create_refresh_token(identity=user_id)

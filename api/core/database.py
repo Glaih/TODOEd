@@ -37,7 +37,7 @@ class User(db.Model):
         return user.password
 
     @classmethod
-    def verify_user(cls, email, password):
+    def verify(cls, email, password):
         email = email.strip()
         user = cls.query.filter_by(mail=email).first()
 

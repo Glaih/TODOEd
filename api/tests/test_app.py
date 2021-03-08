@@ -6,9 +6,7 @@ from datetime import timedelta
 from time import sleep
 
 from core import create_app
-from tests.clear_db import clear_db
-from config import TEST_BASE_NAME
-from core.database import User
+from core.database import User, db
 
 logger = logging.getLogger(__name__)
 
@@ -99,12 +97,12 @@ class TestRegistrationErrors(TestBase):
 class TestRegistrationDb(TestBase):
 
     def setUp(self):
-        clear_db(TEST_BASE_NAME)
+        clear_db(app)
         self.endpoint = 'api.registration'
 
     @classmethod
     def tearDownClass(cls):
-        clear_db(TEST_BASE_NAME)
+        clear_db(app)
 
     def test_begin_valid(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
@@ -166,7 +164,7 @@ class TestJWT(TestBase):
 
     @classmethod
     def tearDownClass(cls):
-        clear_db(TEST_BASE_NAME)
+        clear_db(app)
 
     def test_login_type_error(self):
         request_json = 21
@@ -310,3 +308,8 @@ class TestJWT(TestBase):
         self.assertEqual({'msg': 'Token has expired'}, access_data)
 
         app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+
+
+def clear_db(app_instance):
+    db.drop_all(app=app_instance)
+    db.create_all(app=app_instance)
