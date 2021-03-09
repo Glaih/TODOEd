@@ -7,4 +7,3 @@ venv
 *.log
 *.http
 temp/
-notprod/
