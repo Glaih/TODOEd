@@ -1,13 +1,16 @@
 from os import environ
-from pathlib import Path
 from datetime import timedelta
 
-DB_PATH = Path(__file__, '../db/users.db').resolve()
-TEST_DB_PATH = Path(__file__, '../db/test_users.db').resolve()
+
+DB_PASSWORD = environ['DB_PASSWORD']
+DB_LOGIN = environ['DB_LOGIN']
+DB_HOST = environ['DB_HOST']
+DB_NAME = 'todo'
+TEST_DB_NAME = 'test_todo'
 
 
 class BaseConfig:
-    SQLALCHEMY_DATABASE_URI = f'sqlite:///{DB_PATH}'
+    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_LOGIN}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = environ['SECRET']
     JWT_SECRET_KEY = environ['JWT_SECRET']
@@ -18,7 +21,7 @@ class BaseConfig:
 
 
 class TestConfig:
-    SQLALCHEMY_DATABASE_URI = f'sqlite:///{TEST_DB_PATH}'
+    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_LOGIN}:{DB_PASSWORD}@{DB_HOST}/{TEST_DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = 'test'
     JWT_SECRET_KEY = 'test'

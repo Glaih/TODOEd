@@ -1,14 +1,12 @@
 import unittest
 import logging
-import sqlite3
 from flask import url_for
 from bcrypt import checkpw
 from datetime import timedelta
 from time import sleep
 
 from core import create_app
-from tests.clear_db import clear_db
-from config import TEST_DB_PATH
+from core.database import User, db
 
 logger = logging.getLogger(__name__)
 
@@ -96,16 +94,15 @@ class TestRegistrationErrors(TestBase):
         self.assertEqual({'json_key_error': 'wrong keys'}, data["errors"])
 
 
-@unittest.skipIf(TEST_DB_PATH.is_file() == 0, f'DB_ERROR: DB does not exist.')
 class TestRegistrationDb(TestBase):
 
     def setUp(self):
-        clear_db(TEST_DB_PATH)
+        clear_db(app)
         self.endpoint = 'api.registration'
 
     @classmethod
     def tearDownClass(cls):
-        clear_db(TEST_DB_PATH)
+        clear_db(app)
 
     def test_begin_valid(self):
         request_json = {"email": "tests@mail.ru", "password": "qwerty78"}
@@ -146,21 +143,14 @@ class TestRegistrationDb(TestBase):
     def test_password_written(self):
         password = 'Rgf6b33/Qd]'
         invalid_password = 'ctg45r[YFB!5'
-        mail = ["test5@mail.ru"]
+        mail = "test5@mail.ru"
 
         self.request({"email": "test5@mail.ru ", "password": password}, self.endpoint)
+        with app.app_context():
+            password_in_db = User.get(mail).password
 
-        conn = sqlite3.connect(TEST_DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT password FROM user where mail=?", mail)
-
-        password_in_db = c.fetchone()
-
-        conn.commit()
-        conn.close()
-
-        self.assertTrue(checkpw(password.encode(), *password_in_db))
-        self.assertFalse(checkpw(invalid_password.encode(), *password_in_db))
+        self.assertTrue(checkpw(password.encode(), password_in_db.encode()))
+        self.assertFalse(checkpw(invalid_password.encode(), password_in_db.encode()))
 
 
 class TestJWT(TestBase):
@@ -174,7 +164,7 @@ class TestJWT(TestBase):
 
     @classmethod
     def tearDownClass(cls):
-        clear_db(TEST_DB_PATH)
+        clear_db(app)
 
     def test_login_type_error(self):
         request_json = 21
@@ -272,7 +262,7 @@ class TestJWT(TestBase):
         response, access_data = self.request(request_access, self.protected, 'get')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual({'logged_in_as': f'{self.valid_request["email"]}'}, access_data)
+        self.assertEqual({'logged_in_as': access_data['logged_in_as']}, access_data)
 
     def test_protected_route_invalid_jwt_dict(self):
 
@@ -318,3 +308,8 @@ class TestJWT(TestBase):
         self.assertEqual({'msg': 'Token has expired'}, access_data)
 
         app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+
+
+def clear_db(app_instance):
+    db.drop_all(app=app_instance)
+    db.create_all(app=app_instance)
