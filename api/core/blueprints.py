@@ -2,8 +2,7 @@ import logging
 from flask import request, Blueprint
 from flask_jwt_extended import create_access_token, create_refresh_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
-from core.database import BaseErrors, ValidationErrors, User
+from core.database import BaseErrors, ValidationErrors, User, Task
 
 
 logger = logging.getLogger(__name__)
@@ -48,6 +47,15 @@ def refresh():
 def protected():
     current_user = get_jwt_identity()
     return {'logged_in_as': current_user}, 200
+
+
+@api_blueprint.route('/api/v1/tasks/add', methods=['POST'])
+@jwt_required()
+def add_task():
+    current_user = get_jwt_identity()
+    task_request = request.get_json()
+    task = task_request['data']
+    return { "task": Task.create(current_user, task)}, 200
 
 
 @api_blueprint.errorhandler(BaseErrors)

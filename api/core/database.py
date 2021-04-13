@@ -1,4 +1,5 @@
 import re
+import datetime
 from bcrypt import hashpw, gensalt, checkpw
 from flask_sqlalchemy import SQLAlchemy
 
@@ -12,6 +13,7 @@ class User(db.Model):
     mail = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
     is_active = db.Column(db.Boolean, default=False, nullable=False)
+    tasks = db.relationship('Task', backref='users', lazy=True)
     VALID_MAIL = re.compile(r"^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$")
 
     @classmethod
@@ -63,6 +65,28 @@ class User(db.Model):
 
         if errors:
             raise ValidationErrors(errors)
+
+
+class Task(db.Model):
+    __tablename__ = 'tasks'
+    task_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(30), nullable=False)
+    text = db.Column(db.String(180), nullable=False)
+    deadline = db.Column(db.DateTime, default=None)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+
+    @classmethod
+    def create(cls, user_id, task_request):
+        deadline = None
+        title = task_request['title']
+        text = task_request['text']
+        if task_request['deadline']:
+            deadline = task_request['deadline']
+        task = cls(user_id=user_id, title=title, text=text, deadline=deadline)
+        db.session.add(task)
+        db.session.commit()
+        return task.task_id
 
 
 class BaseErrors(Exception):
