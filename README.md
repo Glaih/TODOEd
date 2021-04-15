@@ -5,7 +5,8 @@ Simple TODOlist management application with auth using Flask and PostgreSQL.
         app.py - api
         run_tests.py - test runner with error reporting in stderr
         config.py - configuration file for app
-        testdb_migration.py - "$ python testdb_migration.py db upgrade(downgrade)" - for upgrading(downgrading) test database
+        testdb_migration.py - "$ python testdb_migration.py db upgrade(downgrade)"
+                              - for upgrading(downgrading) test database
 
         func/ - api modules
             __init__.py - app factory
