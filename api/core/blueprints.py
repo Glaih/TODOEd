@@ -46,7 +46,7 @@ def refresh():
 @jwt_required()
 def protected():
     current_user = get_jwt_identity()
-    return {'logged_in_as': current_user}, 200
+    return {'user_id': current_user}, 200
 
 
 @api_blueprint.route('/api/v1/tasks/add', methods=['POST'])
@@ -54,8 +54,11 @@ def protected():
 def add_task():
     current_user = get_jwt_identity()
     task_request = request.get_json()
-    task = task_request['data']
-    return { "task": Task.create(current_user, task)}, 200
+    title, text, deadline = get_task_data_from_request(task_request['data'])
+    task = Task.create(current_user, title, text, deadline)
+
+    return {"data": {"task_id": task.task_id, "created_at": task.created_at,
+                     "title": task.title, "text": task.text, "deadline": task.deadline}}, 200
 
 
 @api_blueprint.errorhandler(BaseErrors)
@@ -77,3 +80,24 @@ def get_user_data_from_request(json_request):
     except KeyError:
         logger.exception("JSON_KEY_ERROR: 'wrong keys'")
         raise ValidationErrors({'json_key_error': 'wrong keys'})
+
+
+def get_task_data_from_request(json_request):
+    try:
+        title = json_request['title']
+        text = json_request['text']
+
+    except TypeError as err:
+        logger.exception(f"TYPE_ERROR: {err}")
+        raise ValidationErrors({'type_error': f'{err}'})
+
+    except KeyError:
+        logger.exception("JSON_KEY_ERROR: 'wrong keys'")
+        raise ValidationErrors({'json_key_error': 'wrong keys'})
+
+    try:
+        deadline = json_request['deadline']
+    except KeyError:
+        deadline = None
+
+    return title, text, deadline

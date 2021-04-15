@@ -1,16 +1,18 @@
+import pytz
 import unittest
 import logging
+import datetime
 from flask import url_for
 from bcrypt import checkpw
-from datetime import timedelta
+from datetime import timedelta, timezone
 from time import sleep
 
 from core import create_app
-from core.database import User, db
+from core.database import User, Task, db
 
 logger = logging.getLogger(__name__)
 
-app = create_app(True)
+app = create_app(test_config=True)
 
 
 class TestBase(unittest.TestCase):
@@ -156,6 +158,7 @@ class TestRegistrationDb(TestBase):
 class TestJWT(TestBase):
     @classmethod
     def setUpClass(cls):
+        clear_db(app)
         cls.login = 'api.login'
         cls.refresh = 'api.refresh'
         cls.protected = 'api.protected'
@@ -262,7 +265,7 @@ class TestJWT(TestBase):
         response, access_data = self.request(request_access, self.protected, 'get')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual({'logged_in_as': access_data['logged_in_as']}, access_data)
+        self.assertEqual({'user_id': access_data['user_id']}, access_data)
 
     def test_protected_route_invalid_jwt_dict(self):
 
@@ -308,6 +311,194 @@ class TestJWT(TestBase):
         self.assertEqual({'msg': 'Token has expired'}, access_data)
 
         app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+
+
+class TestTasks(TestBase):
+    @classmethod
+    def setUpClass(cls):
+        clear_db(app)
+        cls.registration_endpoint = 'api.registration'
+        cls.protected = 'api.protected'
+        cls.login_endpoint = 'api.login'
+        cls.add_task_endpoint = 'api.add_task'
+        cls.valid_request = {"email": "testJWT@mail.ru ", "password": 'qWeRtYoneoneone'}
+        cls.request(cls.valid_request, cls.registration_endpoint)
+        _, cls.data = cls.request(cls.valid_request, cls.login_endpoint)
+        _, cls.user_id = cls.request(cls.data, cls.protected, method='GET')
+
+    @classmethod
+    def tearDownClass(cls):
+        clear_db(app)
+
+    def test_task_writen_deadline(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "text": "test_text", "deadline": "2022-02-28T18:31:42+04:30"}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+        created_at = datetime.datetime.utcnow().strftime("%Y.%m.%d %H:%M")
+
+        with app.app_context():
+            task_written = Task.get_one(answer['data']['task_id'])
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(answer['data']['task_id'], task_written.task_id)
+        self.assertEqual(self.user_id['user_id'], task_written.user_id)
+        self.assertEqual(task_add_request['data']['title'], task_written.title)
+        self.assertEqual(task_add_request['data']['text'], task_written.text)
+        self.assertEqual(datetime.datetime.fromisoformat(task_add_request['data']['deadline']), task_written.deadline)
+        self.assertTrue(created_at, task_written.created_at.strftime("%Y.%m.%d %H:%M"))
+
+    def test_task_written_no_deadline(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "text": "test_text"}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+        created_at = datetime.datetime.utcnow().strftime("%Y.%m.%d %H:%M")
+
+        with app.app_context():
+            task_written = Task.get_one(answer['data']['task_id'])
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(answer['data']['task_id'], task_written.task_id)
+        self.assertEqual(self.user_id['user_id'], task_written.user_id)
+        self.assertEqual(task_add_request['data']['title'], task_written.title)
+        self.assertEqual(task_add_request['data']['text'], task_written.text)
+        self.assertTrue(created_at, task_written.created_at.strftime("%Y.%m.%d %H:%M"))
+        self.assertEqual(None, task_written.deadline)
+
+    def test_task_add_wrong_key(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "t1ext": "test_text", "deadline": ""}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'json_key_error': 'wrong keys'}}, answer)
+
+    def test_task_add_short_text(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "text": "", "deadline": ""}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'text': 'Text must be 1-180 chars long'}}, answer)
+
+    def test_task_add_long_text(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "text": f"{'1'*181}", "deadline": ""}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'text': 'Text must be 1-180 chars long'}}, answer)
+
+    def test_task_add_short_title(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "", "text": "test", "deadline": ""}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'title': 'Title must be 1-30 chars long'}}, answer)
+
+    def test_task_add_long_title(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": f"{'1' * 31}", "text": "test", "deadline": ""}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'title': 'Title must be 1-30 chars long'}}, answer)
+
+    def test_task_add_short_title_short_text(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "", "text": "", "deadline": ""}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'text': 'Text must be 1-180 chars long',
+                                     'title': 'Title must be 1-30 chars long'}}, answer)
+
+    def test_task_add_long_title_long_text(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": f"{'1' * 31}", "text": f"{'1'*181}", "deadline": ""}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'text': 'Text must be 1-180 chars long',
+                                     'title': 'Title must be 1-30 chars long'}}, answer)
+
+    def test_task_add_deadline_from_past(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "text": "test_text", "deadline": "2021-02-28T18:31:42+04:30"}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({"errors": {"deadline": "Deadline cannot be from past"}}, answer)
+
+    def test_task_add_deadline_without_timezone(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "text": "test_text", "deadline": "2021-02-28T18:31:42"}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'deadline': 'Deadline must have timezone'}}, answer)
+
+    def test_task_add_deadline_wrong_format(self):
+        task_add_request = self.data
+        task_add_request['data'] = {"title": "test_title", "text": "test_text", "deadline": "2021/02/28T18:31:42+04:30"}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {"deadline": "Invalid isoformat string: '2021/02/28T18:31:42+04:30'"}}, answer)
+
+    def test_task_add_no_user(self):
+        task_add_request = self.data
+        clear_db(app)
+        task_add_request['data'] = {"title": "test_title", "text": "test_text", "deadline": "2022-02-28T18:31:42+04:30"}
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.request(self.valid_request, self.registration_endpoint)
+        _, self.data = self.request(self.valid_request, self.login_endpoint)
+        _, self.user_id = self.request(self.data, self.protected, method='GET')
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual({'errors': {'user_id': f"user_id={self.user_id['user_id']} doesn't exists"}}, answer)
+
+    def test_task_add_deadline_wrong_token(self):
+        task_add_request = {
+            'data': {"title": "test_title", "text": "test_text", "deadline": "2021/02/28T18:31:42+04:30"},
+            'access_token': "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYxOD"
+                            "Q4MjY5NCwianRpIjoiNDAwMDUxZmYtOTYyOC00NDFjLWJkNzAtOGVkM2Y0NmM1MzIzIiwib"
+                            "mJmIjoxNjE4NDgyNjk0LCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoyLCJleHAiOjE2MTg1Njkw"
+                            "OTR9.L9agfMTbM-bkLgsIplySMq-rThSpd12cMNno2c5_YzE"}
+
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(422, response.status_code)
+        self.assertEqual({'msg': 'Signature verification failed'}, answer)
+
+    def test_task_add_expired_token(self):
+        app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(milliseconds=1)
+
+        _, request = self.request(self.valid_request, self.login_endpoint)
+        request['data'] = {"title": "test_title", "text": "test_text", "deadline": "2022-02-28T18:31:42+04:30"}
+
+        sleep(1)
+
+        response, answer = self.request(request, self.add_task_endpoint)
+
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({'msg': 'Token has expired'}, answer)
+
+        app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+
+    def test_task_add_deadline_invalid_token(self):
+        task_add_request = {
+            'data': {"title": "test_title", "text": "test_text", "deadline": "2021/02/28T18:31:42+04:30"},
+            'access_token': "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eykmcmVzaCI6ZmFsc2UsImlhdCI6MTYxOD"
+                            "Q4MjY5NCwianRpIjoiNDAwMDUxZmYtOTYy00NDFgLWJkNzAtOGVkM2Y0NmM1MzIzIiwib"
+                            "mJmIjoxNjE4NDgyNjk0LCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoyLCJleHAiOjE2MTg1Njkw"
+                            "OTR9.L9agfMTbM-bkLgsIplySMq-rThSpd12cMNno2c5_YzE"}
+
+        response, answer = self.request(task_add_request, self.add_task_endpoint)
+
+        self.assertEqual(422, response.status_code)
+        self.assertIn('Invalid payload string', answer['msg'])
 
 
 def clear_db(app_instance):

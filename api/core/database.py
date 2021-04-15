@@ -1,5 +1,6 @@
 import re
-import datetime
+from sqlalchemy import exc
+from datetime import datetime, timezone
 from bcrypt import hashpw, gensalt, checkpw
 from flask_sqlalchemy import SQLAlchemy
 
@@ -34,8 +35,14 @@ class User(db.Model):
         return self
 
     @classmethod
-    def get(cls, email):
-        user = cls.query.filter_by(mail=email).first()
+    def get(cls, email=None, user_id=None, status=None):
+        if email:
+            user = cls.query.filter_by(mail=email).first()
+        elif user_id:
+            user = cls.query.filter_by(id=user_id).first()
+        elif status:
+            user = cls.query.filter_by(is_active=status).first()
+
         return user
 
     @classmethod
@@ -73,20 +80,63 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     title = db.Column(db.String(30), nullable=False)
     text = db.Column(db.String(180), nullable=False)
-    deadline = db.Column(db.DateTime, default=None)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    deadline = db.Column(db.DateTime(timezone=True), default=None)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.now(tz=timezone.utc))
 
     @classmethod
-    def create(cls, user_id, task_request):
-        deadline = None
-        title = task_request['title']
-        text = task_request['text']
-        if task_request['deadline']:
-            deadline = task_request['deadline']
+    def create(cls, user_id, title, text, deadline):
+        title = title.strip()
+        text = text.strip()
+
         task = cls(user_id=user_id, title=title, text=text, deadline=deadline)
-        db.session.add(task)
-        db.session.commit()
-        return task.task_id
+
+        return task.save(title, text, deadline, user_id)
+
+    def save(self, title, text, deadline, user_id):
+        self._validate(title, text, deadline)
+        if self.task_id is None:
+            db.session.add(self)
+        else:
+            pass
+
+        try:
+            db.session.commit()
+        except exc.IntegrityError as e:
+            db.session.rollback()
+
+            if f'(user_id)=({user_id}) is not present in table "users"' in str(e.orig):
+                raise ValidationErrors({"user_id": f"{user_id=} doesn't exists"})
+            raise ValidationErrors(str(e.orig))
+
+        return self
+
+    @classmethod
+    def get_one(cls, task_id):
+        task = cls.query.filter_by(task_id=task_id).first()
+        return task
+
+    @classmethod
+    def _validate(cls, title, text, deadline):
+        errors = {}
+
+        if not 1 <= len(title) <= 30:
+            errors['title'] = 'Title must be 1-30 chars long'
+
+        if not 1 <= len(text) <= 180:
+            errors['text'] = 'Text must be 1-180 chars long'
+
+        if deadline:
+            try:
+                datetime.fromisoformat(deadline)
+                if datetime.now(tz=timezone.utc) >= datetime.fromisoformat(deadline):
+                    errors['deadline'] = 'Deadline cannot be from past'
+            except ValueError as e:
+                errors['deadline'] = str(e)
+            except TypeError as e:
+                errors['deadline'] = 'Deadline must have timezone'
+
+        if errors:
+            raise ValidationErrors(errors)
 
 
 class BaseErrors(Exception):
