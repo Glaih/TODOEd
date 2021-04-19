@@ -30,7 +30,7 @@ class TestBase(unittest.TestCase):
 
 class TestRegistrationErrors(TestBase):
     def setUp(self):
-        self.endpoint = 'api.registration'
+        self.endpoint = 'api.create_user'
 
     def test_short_password_no_tld(self):
         request_json = {"email": "test6@mail", "password": "qwerty7"}
@@ -100,7 +100,7 @@ class TestRegistrationDb(TestBase):
 
     def setUp(self):
         clear_db(app)
-        self.endpoint = 'api.registration'
+        self.endpoint = 'api.create_user'
 
     @classmethod
     def tearDownClass(cls):
@@ -159,11 +159,11 @@ class TestJWT(TestBase):
     @classmethod
     def setUpClass(cls):
         clear_db(app)
-        cls.login = 'api.login'
-        cls.refresh = 'api.refresh'
+        cls.login = 'api.login_user'
+        cls.refresh = 'api.refresh_token'
         cls.protected = 'api.protected'
         cls.valid_request = {"email": "testJWT@mail.ru ", "password": 'qWeRtYoneoneone'}
-        cls.request(cls.valid_request, 'api.registration')
+        cls.request(cls.valid_request, 'api.create_user')
 
     @classmethod
     def tearDownClass(cls):
@@ -317,10 +317,10 @@ class TestTasks(TestBase):
     @classmethod
     def setUpClass(cls):
         clear_db(app)
-        cls.registration_endpoint = 'api.registration'
+        cls.registration_endpoint = 'api.create_user'
         cls.protected = 'api.protected'
-        cls.login_endpoint = 'api.login'
-        cls.add_task_endpoint = 'api.add_task'
+        cls.login_endpoint = 'api.login_user'
+        cls.add_task_endpoint = 'api.create_task'
         cls.valid_request = {"email": "testJWT@mail.ru ", "password": 'qWeRtYoneoneone'}
         cls.request(cls.valid_request, cls.registration_endpoint)
         _, cls.data = cls.request(cls.valid_request, cls.login_endpoint)

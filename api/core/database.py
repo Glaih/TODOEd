@@ -36,6 +36,8 @@ class User(db.Model):
 
     @classmethod
     def get(cls, email=None, user_id=None, status=None):
+        user = None
+
         if email:
             user = cls.query.filter_by(mail=email).first()
         elif user_id:
@@ -127,13 +129,12 @@ class Task(db.Model):
 
         if deadline:
             try:
-                datetime.fromisoformat(deadline)
                 if datetime.now(tz=timezone.utc) >= datetime.fromisoformat(deadline):
                     errors['deadline'] = 'Deadline cannot be from past'
+            except TypeError:
+                errors['deadline'] = 'Deadline must have timezone'
             except ValueError as e:
                 errors['deadline'] = str(e)
-            except TypeError as e:
-                errors['deadline'] = 'Deadline must have timezone'
 
         if errors:
             raise ValidationErrors(errors)

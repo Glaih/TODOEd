@@ -12,7 +12,7 @@ api_blueprint = Blueprint('api', __name__)
 
 
 @api_blueprint.route('/api/v1/users/registration/', methods=['POST'])
-def registration():
+def create_user():
     auth_request = request.get_json()
 
     mail, password = get_user_data_from_request(auth_request)
@@ -22,7 +22,7 @@ def registration():
 
 
 @api_blueprint.route('/api/v1/users/login', methods=['POST'])
-def login():
+def login_user():
     auth_request = request.get_json()
 
     mail, password = get_user_data_from_request(auth_request)
@@ -36,7 +36,7 @@ def login():
 
 @api_blueprint.route('/api/v1/users/refresh', methods=["POST"])
 @jwt_required(refresh=True)
-def refresh():
+def refresh_token():
     identity = get_jwt_identity()
     access_token = create_access_token(identity=identity)
     return {'access_token': access_token}, 200
@@ -51,14 +51,14 @@ def protected():
 
 @api_blueprint.route('/api/v1/tasks/add', methods=['POST'])
 @jwt_required()
-def add_task():
+def create_task():
     current_user = get_jwt_identity()
     task_request = request.get_json()
     title, text, deadline = get_task_data_from_request(task_request['data'])
     task = Task.create(current_user, title, text, deadline)
 
-    return {"data": {"task_id": task.task_id, "created_at": task.created_at,
-                     "title": task.title, "text": task.text, "deadline": task.deadline}}, 200
+    return {"data": {"task_id": task.task_id, "title": task.title,
+                     "text": task.text, "deadline": task.deadline, "created_at": task.created_at}}, 200
 
 
 @api_blueprint.errorhandler(BaseErrors)
