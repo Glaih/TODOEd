@@ -95,9 +95,6 @@ def get_task_data_from_request(json_request):
         logger.exception("JSON_KEY_ERROR: 'wrong keys'")
         raise ValidationErrors({'json_key_error': 'wrong keys'})
 
-    try:
-        deadline = json_request['deadline']
-    except KeyError:
-        deadline = None
+    deadline = json_request.get('deadline')
 
     return title, text, deadline
