@@ -35,22 +35,20 @@ class User(db.Model):
         return self
 
     @classmethod
-    def get(cls, email=None, user_id=None, status=None):
+    def get_one(cls, email=None, user_id=None):
         user = None
 
         if email:
             user = cls.query.filter_by(mail=email).first()
         elif user_id:
             user = cls.query.filter_by(id=user_id).first()
-        elif status:
-            user = cls.query.filter_by(is_active=status).first()
 
         return user
 
     @classmethod
     def verify(cls, email, password):
         email = email.strip()
-        user = cls.get(email)
+        user = cls.get_one(email)
 
         if not user:
             raise PermissionErrors({'email': 'user does not exist'})
@@ -63,7 +61,7 @@ class User(db.Model):
     def _validate(cls, email, password):
         errors = {}
 
-        if cls.get(email):
+        if cls.get_one(email):
             raise ValidationErrors({'email': 'User already exists'})
 
         if not cls.VALID_MAIL.search(email):

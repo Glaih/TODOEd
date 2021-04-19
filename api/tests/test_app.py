@@ -149,7 +149,7 @@ class TestRegistrationDb(TestBase):
 
         self.request({"email": "test5@mail.ru ", "password": password}, self.endpoint)
         with app.app_context():
-            password_in_db = User.get(mail).password
+            password_in_db = User.get_one(mail).password
 
         self.assertTrue(checkpw(password.encode(), password_in_db.encode()))
         self.assertFalse(checkpw(invalid_password.encode(), password_in_db.encode()))
