@@ -83,9 +83,12 @@ def get_user_data_from_request(json_request):
 
 
 def get_task_data_from_request(json_request):
+    deadline = json_request.get('deadline')
+
     try:
         title = json_request['title']
         text = json_request['text']
+        return title, text, deadline
 
     except TypeError as err:
         logger.exception(f"TYPE_ERROR: {err}")
@@ -94,7 +97,3 @@ def get_task_data_from_request(json_request):
     except KeyError:
         logger.exception("JSON_KEY_ERROR: 'wrong keys'")
         raise ValidationErrors({'json_key_error': 'wrong keys'})
-
-    deadline = json_request.get('deadline')
-
-    return title, text, deadline
