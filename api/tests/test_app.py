@@ -1,10 +1,9 @@
-import pytz
 import unittest
 import logging
 import datetime
 from flask import url_for
 from bcrypt import checkpw
-from datetime import timedelta, timezone
+from datetime import timedelta
 from time import sleep
 
 from core import create_app
