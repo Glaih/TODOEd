@@ -61,6 +61,18 @@ def create_task():
                      "text": task.text, "deadline": task.deadline, "created_at": task.created_at}}, 200
 
 
+@api_blueprint.route('/api/v1/tasks/get_one', methods=['GET'])
+@jwt_required()
+def get_task():
+    current_user = get_jwt_identity()
+    task_request = request.get_json()
+    task_id = get_task_id_from_request(task_request['data'])
+    task = Task.get_one(task_id, current_user)
+
+    return {"data": {"task_id": task.task_id, "title": task.title,
+                     "text": task.text, "deadline": task.deadline, "created_at": task.created_at}}, 200
+
+
 @api_blueprint.errorhandler(BaseErrors)
 def handle_bad_verification(e):
     logger.exception(e)
@@ -89,6 +101,19 @@ def get_task_data_from_request(json_request):
         title = json_request['title']
         text = json_request['text']
         return title, text, deadline
+
+    except TypeError as err:
+        logger.exception(f"TYPE_ERROR: {err}")
+        raise ValidationErrors({'type_error': f'{err}'})
+
+    except KeyError:
+        logger.exception("JSON_KEY_ERROR: 'wrong keys'")
+        raise ValidationErrors({'json_key_error': 'wrong keys'})
+
+
+def get_task_id_from_request(json_request):
+    try:
+        return json_request['task_id']
 
     except TypeError as err:
         logger.exception(f"TYPE_ERROR: {err}")

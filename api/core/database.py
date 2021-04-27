@@ -93,7 +93,7 @@ class Task(db.Model):
         return task.save(title, text, deadline, user_id)
 
     def save(self, title, text, deadline, user_id):
-        self._validate(title, text, deadline)
+        self._validate_new_task(title, text, deadline)
         if self.task_id is None:
             db.session.add(self)
         else:
@@ -111,12 +111,21 @@ class Task(db.Model):
         return self
 
     @classmethod
-    def get_one(cls, task_id):
+    def get_one(cls, task_id, user_id):
+        if not isinstance(task_id, int):
+            raise ValidationErrors({"task_id": "task_id must be int"})
+
         task = cls.query.filter_by(task_id=task_id).first()
-        return task
+
+        if not task:
+            raise NotFoundError({'task_id': f"task id {task_id} doesn't exists"})
+        elif task.user_id == user_id:
+            return task
+        else:
+            raise PermissionErrors({'task_id': f"task id {task_id} doesn't belong to current user"})
 
     @classmethod
-    def _validate(cls, title, text, deadline):
+    def _validate_new_task(cls, title, text, deadline):
         errors = {}
 
         if not 1 <= len(title) <= 30:
@@ -154,3 +163,7 @@ class ValidationErrors(BaseErrors):
 
 class PermissionErrors(BaseErrors):
     status_code = 403
+
+
+class NotFoundError(BaseErrors):
+    status_code = 404
